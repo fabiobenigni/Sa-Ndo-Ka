@@ -8,8 +8,16 @@ export const metadata: Metadata = {
   title: "Sa-Ndo-Ka - Catalogazione Intelligente",
   description: "Sistema smart per organizzare contenitori e oggetti con QR code",
   icons: {
-    icon: '/icon.png',
+    icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+      { url: '/favicon.ico', sizes: '32x32' },
+    ],
+    apple: [
+      { url: '/app-icon.svg', sizes: '180x180', type: 'image/svg+xml' },
+    ],
   },
+  manifest: '/manifest.json',
+  themeColor: '#f97316',
 };
 
 export default function RootLayout({

@@ -1,0 +1,27 @@
+import { MetadataRoute } from 'next';
+
+export default function manifest(): MetadataRoute.Manifest {
+  return {
+    name: 'Sa-Ndo-Ka - Catalogazione Intelligente',
+    short_name: 'Sa-Ndo-Ka',
+    description: 'Sistema smart per organizzare contenitori e oggetti con QR code',
+    start_url: '/',
+    display: 'standalone',
+    background_color: '#f97316',
+    theme_color: '#f97316',
+    icons: [
+      {
+        src: '/favicon.svg',
+        sizes: 'any',
+        type: 'image/svg+xml',
+      },
+      {
+        src: '/app-icon.svg',
+        sizes: '512x512',
+        type: 'image/svg+xml',
+        purpose: 'any maskable',
+      },
+    ],
+  };
+}
+

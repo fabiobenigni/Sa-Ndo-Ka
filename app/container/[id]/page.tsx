@@ -24,11 +24,12 @@ export default async function ContainerPage({
           {
             shares: {
               some: {
-              userId: session.user.id,
-              accepted: true,
+                userId: session.user.id,
+                accepted: true,
+              },
             },
           },
-        },
+        ],
       },
     },
     include: {

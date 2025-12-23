@@ -10,6 +10,10 @@ const nextConfig = {
       bodySizeLimit: '50mb', // Per upload foto
     },
   },
+  // Disabilita prerendering per pagine dinamiche
+  generateBuildId: async () => {
+    return 'build-' + Date.now()
+  },
 }
 
 module.exports = nextConfig

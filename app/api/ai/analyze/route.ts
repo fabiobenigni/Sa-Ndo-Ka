@@ -97,7 +97,7 @@ export async function POST(request: Request) {
                   type: 'text',
                   text: `Analizza questa foto e genera una descrizione e le caratteristiche per un oggetto di tipo "${objectType.name}". Proprietà disponibili: ${objectType.properties.map(p => `${p.name} (${p.type})`).join(', ')}. Restituisci JSON con: description (stringa), properties (oggetto con chiavi = id proprietà, valori = valori delle proprietà).`,
                 },
-              ],
+              ] as any,
             },
           ],
         });

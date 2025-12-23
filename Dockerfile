@@ -8,7 +8,8 @@ COPY package*.json ./
 COPY prisma ./prisma/
 
 # Install dependencies
-RUN npm ci
+# Usa npm ci se package-lock.json esiste, altrimenti npm install con --legacy-peer-deps
+RUN if [ -f package-lock.json ]; then npm ci; else npm install --legacy-peer-deps; fi
 
 # Copy source code
 COPY . .
@@ -38,18 +39,26 @@ COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 
+# Copy start script
+COPY start.sh /app/start.sh
+RUN chmod +x /app/start.sh
+
 # Create uploads directory
 RUN mkdir -p uploads && chown -R nextjs:nodejs uploads
 
 # Set correct permissions
 RUN chown -R nextjs:nodejs /app
 
-USER nextjs
-
 EXPOSE 3000
 
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-CMD ["node", "server.js"]
+WORKDIR /app
+
+# Cambia utente dopo aver impostato tutto
+USER nextjs
+
+# Usa sh per eseguire lo script
+CMD ["sh", "/app/start.sh"]
 

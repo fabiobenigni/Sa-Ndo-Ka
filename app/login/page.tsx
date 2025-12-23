@@ -37,12 +37,12 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
-      <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 via-primary-100 to-accent-yellow-50 px-4">
+      <div className="max-w-md w-full bg-white/90 backdrop-blur-sm rounded-xl shadow-2xl border border-primary-200 p-8">
         <div className="text-center mb-8">
-          <img src="/icon.png" alt="Sa-Ndo-Ka" className="h-16 w-16 mx-auto mb-4" />
-          <h1 className="text-3xl font-bold text-gray-900">Sa-Ndo-Ka</h1>
-          <p className="text-gray-600 mt-2">Accedi al tuo account</p>
+          <img src="/app-icon.svg" alt="Sa-Ndo-Ka" className="h-20 w-20 mx-auto mb-4" />
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-primary-600 to-accent-red text-transparent bg-clip-text">Sa-Ndo-Ka</h1>
+          <p className="text-primary-700 mt-2">Accedi al tuo account</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -83,7 +83,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-primary-600 text-white py-2 px-4 rounded-lg hover:bg-primary-700 font-medium disabled:opacity-50"
+            className="w-full bg-gradient-to-r from-primary-600 to-primary-500 text-white py-3 px-4 rounded-lg hover:from-primary-700 hover:to-primary-600 font-medium disabled:opacity-50 shadow-lg hover:shadow-xl transition-all"
           >
             {loading ? 'Accesso...' : 'Accedi'}
           </button>
