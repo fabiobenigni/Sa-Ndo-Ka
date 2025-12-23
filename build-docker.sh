@@ -6,7 +6,11 @@ set -e
 
 IMAGE_NAME="sa-ndo-ka"
 IMAGE_TAG="latest"
-TAR_FILE="sa-ndo-ka.tar"
+DEPLOY_DIR="deploy"
+TAR_FILE="${DEPLOY_DIR}/sa-ndo-ka.tar"
+
+# Crea cartella deploy se non esiste
+mkdir -p ${DEPLOY_DIR}
 
 echo "Building Docker image..."
 docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .

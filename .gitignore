@@ -46,4 +46,9 @@ next-env.d.ts
 
 # Docker
 *.tar
+*.tar.gz
+
+# Deploy (mantieni cartella ma ignora file TAR)
+deploy/*.tar
+deploy/*.tar.gz
 
