@@ -9,11 +9,11 @@ export const metadata: Metadata = {
   description: "Sistema smart per organizzare contenitori e oggetti con QR code",
   icons: {
     icon: [
-      { url: '/favicon.svg', type: 'image/svg+xml' },
+      { url: '/favicon.png', type: 'image/png' },
       { url: '/favicon.ico', sizes: '32x32' },
     ],
     apple: [
-      { url: '/app-icon.svg', sizes: '180x180', type: 'image/svg+xml' },
+      { url: '/icon-192.png', sizes: '180x180', type: 'image/png' },
     ],
   },
   manifest: '/manifest.json',

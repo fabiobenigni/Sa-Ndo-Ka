@@ -40,7 +40,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 via-primary-100 to-accent-yellow-50 px-4">
       <div className="max-w-md w-full bg-white/90 backdrop-blur-sm rounded-xl shadow-2xl border border-primary-200 p-8">
         <div className="text-center mb-8">
-          <img src="/app-icon.svg" alt="Sa-Ndo-Ka" className="h-20 w-20 mx-auto mb-4" />
+          <img src="/app-icon.jpg" alt="Sa-Ndo-Ka" className="h-20 w-20 mx-auto mb-4 rounded-lg" />
           <h1 className="text-3xl font-bold bg-gradient-to-r from-primary-600 to-accent-red text-transparent bg-clip-text">Sa-Ndo-Ka</h1>
           <p className="text-primary-700 mt-2">Accedi al tuo account</p>
         </div>

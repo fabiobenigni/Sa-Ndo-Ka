@@ -56,7 +56,7 @@ export default function DashboardPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-3">
-              <img src="/app-icon.svg" alt="Sa-Ndo-Ka" className="h-12 w-12" />
+              <img src="/app-icon.jpg" alt="Sa-Ndo-Ka" className="h-12 w-12 rounded-lg" />
               <h1 className="text-3xl font-bold bg-gradient-to-r from-primary-600 to-accent-red text-transparent bg-clip-text">Sa-Ndo-Ka</h1>
             </div>
             <div className="flex items-center space-x-4">
