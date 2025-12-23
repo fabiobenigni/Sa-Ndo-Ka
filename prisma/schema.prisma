@@ -1,0 +1,208 @@
+// Schema database metamodello per Sa-Ndo-Ka
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Utenti
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  password      String
+  name          String?
+  language      String   @default("it")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relazioni
+  collections   Collection[]
+  sharedWithMe  CollectionShare[] @relation("SharedWithUser")
+  aiConfigs     AIConfig[]
+  
+  @@index([email])
+}
+
+// Configurazione AI per utente
+model AIConfig {
+  id            String   @id @default(cuid())
+  userId        String
+  provider      String   // "openai", "anthropic", "google"
+  apiKey        String?  // Encrypted
+  enabled       Boolean  @default(false)
+  useFreeTier   Boolean  @default(true)
+  freeTierUsed  Int      @default(0)
+  freeTierLimit Int      @default(100) // Configurabile
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, provider])
+  @@index([userId])
+}
+
+// Collezioni (raggruppano contenitori)
+model Collection {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  userId      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relazioni
+  user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  containers  Container[]
+  shares      CollectionShare[]
+
+  @@index([userId])
+}
+
+// Condivisioni collezioni con permessi
+model CollectionShare {
+  id           String   @id @default(cuid())
+  collectionId String
+  userId       String   // Utente con cui è condivisa
+  permission   String   // "read", "write", "delete"
+  invitedBy    String   // Email o telefono
+  inviteMethod String?   // "email", "whatsapp"
+  accepted     Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  user         User       @relation("SharedWithUser", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([collectionId, userId])
+  @@index([userId])
+  @@index([collectionId])
+}
+
+// Contenitori (hanno QR code)
+model Container {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  collectionId String
+  qrCode      String   @unique // URL del QR code
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relazioni
+  collection  Collection      @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  items       ContainerItem[]
+
+  @@index([collectionId])
+  @@index([qrCode])
+}
+
+// Relazione contenitore-oggetto
+model ContainerItem {
+  id          String   @id @default(cuid())
+  containerId String
+  objectId    String
+  quantity    Int      @default(1)
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  container   Container @relation(fields: [containerId], references: [id], onDelete: Cascade)
+  object      Object    @relation(fields: [objectId], references: [id], onDelete: Cascade)
+
+  @@unique([containerId, objectId])
+  @@index([containerId])
+  @@index([objectId])
+}
+
+// Tipi di oggetti (Maglione, Elettronico, etc.)
+model ObjectType {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  userId      String?  // null = tipo globale
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relazioni
+  objects     Object[]
+  properties  Property[]
+
+  @@index([userId])
+}
+
+// Oggetti base
+model Object {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  objectTypeId String
+  photoUrl    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relazioni
+  objectType  ObjectType       @relation(fields: [objectTypeId], references: [id])
+  properties  ObjectProperty[]
+  containers  ContainerItem[]
+
+  @@index([objectTypeId])
+}
+
+// Proprietà/Caratteristiche (definizione)
+model Property {
+  id          String   @id @default(cuid())
+  name        String
+  type        String   // "text", "number", "select", "boolean", "date"
+  objectTypeId String
+  required    Boolean  @default(false)
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relazioni
+  objectType  ObjectType       @relation(fields: [objectTypeId], references: [id], onDelete: Cascade)
+  values      ObjectProperty[]
+  lookupValues LookupValue[]
+
+  @@index([objectTypeId])
+}
+
+// Valori proprietà per oggetto (EAV)
+model ObjectProperty {
+  id         String   @id @default(cuid())
+  objectId   String
+  propertyId String
+  value      String   // Valore come stringa (convertire in base al tipo)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Relazioni
+  object     Object   @relation(fields: [objectId], references: [id], onDelete: Cascade)
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@unique([objectId, propertyId])
+  @@index([objectId])
+  @@index([propertyId])
+}
+
+// Valori lookup per dropdown (taglie, colori, etc.)
+model LookupValue {
+  id         String   @id @default(cuid())
+  propertyId String
+  value      String
+  label      String   // Label localizzata
+  order      Int      @default(0)
+  createdAt  DateTime @default(now())
+
+  // Relazioni
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@unique([propertyId, value])
+  @@index([propertyId])
+}
+

@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  sa-ndo-ka:
+    build: .
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./uploads:/app/uploads
+      - ./sa-ndo-ka.db:/app/sa-ndo-ka.db
+    environment:
+      - DATABASE_URL=file:./sa-ndo-ka.db
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET:-change-this-secret}
+      - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
+    restart: unless-stopped
+

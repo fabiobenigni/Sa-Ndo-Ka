@@ -1,0 +1,73 @@
+{
+  "common": {
+    "appName": "Sa-Ndo-Ka",
+    "welcome": "Benvenuto",
+    "login": "Accedi",
+    "register": "Registrati",
+    "logout": "Esci",
+    "save": "Salva",
+    "cancel": "Annulla",
+    "delete": "Elimina",
+    "edit": "Modifica",
+    "create": "Crea",
+    "search": "Cerca",
+    "filter": "Filtra",
+    "loading": "Caricamento...",
+    "error": "Errore",
+    "success": "Successo"
+  },
+  "home": {
+    "title": "Sa-Ndo-Ka - Catalogazione Intelligente",
+    "subtitle": "Il sistema smart per organizzare contenitori e oggetti",
+    "description": "Scansiona il QR code e visualizza il contenuto senza nemmeno aprire il tappo.",
+    "features": {
+      "title": "Caratteristiche",
+      "catalog": "Catalogazione flessibile",
+      "qr": "QR code per contenitori",
+      "ai": "Analisi AI delle foto",
+      "share": "Condivisione e collaborazione"
+    }
+  },
+  "auth": {
+    "email": "Email",
+    "password": "Password",
+    "name": "Nome",
+    "confirmPassword": "Conferma password",
+    "forgotPassword": "Password dimenticata?",
+    "alreadyHaveAccount": "Hai già un account?",
+    "noAccount": "Non hai un account?"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "collections": "Collezioni",
+    "containers": "Contenitori",
+    "items": "Oggetti"
+  },
+  "collections": {
+    "title": "Collezioni",
+    "create": "Crea collezione",
+    "name": "Nome collezione",
+    "description": "Descrizione",
+    "empty": "Nessuna collezione"
+  },
+  "containers": {
+    "title": "Contenitori",
+    "create": "Crea contenitore",
+    "name": "Nome contenitore",
+    "qrCode": "QR Code",
+    "downloadQR": "Scarica QR Code",
+    "printQR": "Stampa QR Code"
+  },
+  "items": {
+    "title": "Oggetti",
+    "create": "Crea oggetto",
+    "name": "Nome oggetto",
+    "type": "Tipo oggetto",
+    "photo": "Foto",
+    "takePhoto": "Scatta foto",
+    "selectPhoto": "Seleziona da galleria",
+    "analyzeWithAI": "Analizza con AI",
+    "properties": "Proprietà"
+  }
+}
+

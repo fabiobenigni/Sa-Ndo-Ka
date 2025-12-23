@@ -1,0 +1,73 @@
+{
+  "common": {
+    "appName": "Sa-Ndo-Ka",
+    "welcome": "Welcome",
+    "login": "Login",
+    "register": "Register",
+    "logout": "Logout",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "search": "Search",
+    "filter": "Filter",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success"
+  },
+  "home": {
+    "title": "Sa-Ndo-Ka - Smart Cataloging",
+    "subtitle": "The smart system to organize containers and objects",
+    "description": "Scan the QR code and view the contents without even opening the lid.",
+    "features": {
+      "title": "Features",
+      "catalog": "Flexible cataloging",
+      "qr": "QR codes for containers",
+      "ai": "AI photo analysis",
+      "share": "Sharing and collaboration"
+    }
+  },
+  "auth": {
+    "email": "Email",
+    "password": "Password",
+    "name": "Name",
+    "confirmPassword": "Confirm password",
+    "forgotPassword": "Forgot password?",
+    "alreadyHaveAccount": "Already have an account?",
+    "noAccount": "Don't have an account?"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "collections": "Collections",
+    "containers": "Containers",
+    "items": "Items"
+  },
+  "collections": {
+    "title": "Collections",
+    "create": "Create collection",
+    "name": "Collection name",
+    "description": "Description",
+    "empty": "No collections"
+  },
+  "containers": {
+    "title": "Containers",
+    "create": "Create container",
+    "name": "Container name",
+    "qrCode": "QR Code",
+    "downloadQR": "Download QR Code",
+    "printQR": "Print QR Code"
+  },
+  "items": {
+    "title": "Items",
+    "create": "Create item",
+    "name": "Item name",
+    "type": "Item type",
+    "photo": "Photo",
+    "takePhoto": "Take photo",
+    "selectPhoto": "Select from gallery",
+    "analyzeWithAI": "Analyze with AI",
+    "properties": "Properties"
+  }
+}
+
