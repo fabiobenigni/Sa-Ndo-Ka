@@ -4,13 +4,14 @@ Sistema di catalogazione intelligente per oggetti con QR code.
 
 ## Caratteristiche
 
-- 📦 Catalogazione oggetti con tipi personalizzabili
-- 🏷️ QR code per contenitori
-- 📸 Upload foto da camera/galleria
-- 🤖 Analisi AI delle foto (Claude, ChatGPT, Gemini)
-- 👥 Multi-utente con condivisione e permessi
-- 🌍 Multi-lingua (basato su browser)
-- 📄 Generazione PDF per QR code
+- 📦 Catalogazione oggetti con tipi personalizzabili e proprietà dinamiche (metamodello)
+- 🏷️ QR code per contenitori con link protetto
+- 📸 Upload foto da camera/galleria (multiplo)
+- 🤖 Analisi AI delle foto (Claude, ChatGPT, Gemini) configurabile per utente
+- 👥 Multi-utente con condivisione e permessi (lettura/modifica/cancellazione)
+- 📧 Inviti via Email o WhatsApp
+- 📄 Generazione PDF per QR code (download e stampa)
+- 🐳 Container Docker pronto per NAS Ugreen
 
 ## Setup
 
@@ -75,20 +76,41 @@ Apri [http://localhost:3000](http://localhost:3000)
 docker build -t sa-ndo-ka:latest .
 ```
 
-### Run
+### Run locale
 
 ```bash
 docker run -p 3000:3000 \
   -v $(pwd)/uploads:/app/uploads \
   -v $(pwd)/sa-ndo-ka.db:/app/sa-ndo-ka.db \
+  -e DATABASE_URL="file:./sa-ndo-ka.db" \
+  -e NEXTAUTH_SECRET="your-secret-key" \
+  -e NEXTAUTH_URL="http://localhost:3000" \
   sa-ndo-ka:latest
 ```
 
-### Export per NAS
+### Export per NAS Ugreen
+
+Usa lo script fornito:
+
+```bash
+./build-docker.sh
+```
+
+Oppure manualmente:
 
 ```bash
 docker save sa-ndo-ka:latest | gzip > sa-ndo-ka.tar.gz
 ```
+
+### Caricamento su NAS
+
+1. Carica il file `sa-ndo-ka.tar.gz` sul tuo NAS
+2. Nel pannello Docker del NAS, importa l'immagine
+3. Crea un container con:
+   - Porta: 3000 (o altra a tua scelta)
+   - Volume per uploads: `/app/uploads`
+   - Volume per database: `/app/sa-ndo-ka.db`
+   - Variabili d'ambiente: vedi `.env.example`
 
 ## Licenza
 
