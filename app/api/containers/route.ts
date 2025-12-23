@@ -112,6 +112,7 @@ export async function POST(request: Request) {
         name,
         description,
         collectionId,
+        userId: session.user.id,
         qrCode: `container-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       },
     });

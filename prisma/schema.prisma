@@ -23,6 +23,9 @@ model User {
   collections   Collection[]
   sharedWithMe  CollectionShare[] @relation("SharedWithUser")
   aiConfigs     AIConfig[]
+  containers    Container[]
+  objects       Object[]
+  containerItems ContainerItem[]
   
   @@index([email])
 }
@@ -89,15 +92,18 @@ model Container {
   name        String
   description String?
   collectionId String
+  userId      String   // Utente che ha creato il contenitore
   qrCode      String   @unique // URL del QR code
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   // Relazioni
   collection  Collection      @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   items       ContainerItem[]
 
   @@index([collectionId])
+  @@index([userId])
   @@index([qrCode])
 }
 
@@ -106,6 +112,7 @@ model ContainerItem {
   id          String   @id @default(cuid())
   containerId String
   objectId    String
+  userId      String   // Utente che ha aggiunto l'oggetto al contenitore
   quantity    Int      @default(1)
   notes       String?
   createdAt   DateTime @default(now())
@@ -113,10 +120,12 @@ model ContainerItem {
 
   container   Container @relation(fields: [containerId], references: [id], onDelete: Cascade)
   object      Object    @relation(fields: [objectId], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([containerId, objectId])
   @@index([containerId])
   @@index([objectId])
+  @@index([userId])
 }
 
 // Tipi di oggetti (Maglione, Elettronico, etc.)
@@ -141,16 +150,19 @@ model Object {
   name        String
   description String?
   objectTypeId String
+  userId      String   // Utente che ha creato l'oggetto
   photoUrl    String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   // Relazioni
   objectType  ObjectType       @relation(fields: [objectTypeId], references: [id])
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   properties  ObjectProperty[]
   containers  ContainerItem[]
 
   @@index([objectTypeId])
+  @@index([userId])
 }
 
 // Proprietà/Caratteristiche (definizione)

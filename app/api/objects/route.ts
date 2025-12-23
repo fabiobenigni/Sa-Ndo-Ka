@@ -97,6 +97,7 @@ export async function POST(request: Request) {
         name,
         description: description || undefined,
         objectTypeId,
+        userId: session.user.id,
         photoUrl,
         properties: {
           create: Object.entries(properties).map(([propertyId, value]) => ({
@@ -121,6 +122,7 @@ export async function POST(request: Request) {
         data: {
           containerId,
           objectId: object.id,
+          userId: session.user.id,
         },
       });
     }
