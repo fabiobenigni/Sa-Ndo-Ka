@@ -235,3 +235,11 @@ model LookupValue {
   @@index([propertyId])
 }
 
+// Configurazione applicazione (singleton)
+model AppConfig {
+  id        String   @id @default("singleton")
+  baseUrl   String   @default("http://localhost:3000")
+  updatedAt DateTime @updatedAt
+  updatedBy String?  // userId dell'utente che ha aggiornato
+}
+

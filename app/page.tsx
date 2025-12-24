@@ -5,9 +5,19 @@ export const dynamic = 'force-dynamic';
 export default function HomePage() {
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-primary-100 to-accent-yellow-50">
+    <div className="min-h-screen relative bg-gradient-to-br from-primary-50 via-primary-100 to-accent-yellow-50">
+      {/* Immagine di sfondo */}
+      <div className="absolute inset-0 overflow-hidden">
+        <img 
+          src="/hero-image.jpg" 
+          alt="Sa-Ndo-Ka" 
+          className="w-full h-full object-cover opacity-20"
+        />
+        <div className="absolute inset-0 bg-gradient-to-br from-primary-50/80 via-primary-100/80 to-accent-yellow-50/80"></div>
+      </div>
+
       {/* Header */}
-      <header className="bg-white/90 backdrop-blur-sm shadow-md border-b border-primary-200">
+      <header className="relative bg-white/90 backdrop-blur-sm shadow-md border-b border-primary-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-3">
@@ -35,7 +45,7 @@ export default function HomePage() {
       </header>
 
       {/* Hero Section con immagine */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid md:grid-cols-2 gap-8 items-center mb-12">
           <div>
             <h2 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary-700 via-accent-red to-primary-600 text-transparent bg-clip-text">
@@ -100,7 +110,7 @@ export default function HomePage() {
       </main>
 
       {/* Footer */}
-      <footer className="bg-gradient-to-r from-primary-900 via-primary-800 to-accent-red mt-20 text-white">
+      <footer className="relative bg-gradient-to-r from-primary-900 via-primary-800 to-accent-red mt-20 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center">
             <p className="text-primary-200">© 2025 Sa-Ndo-Ka. Tutti i diritti riservati.</p>

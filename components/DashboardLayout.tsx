@@ -43,8 +43,18 @@ export default function DashboardLayout({ children, breadcrumbs, title }: Dashbo
   const currentBreadcrumbs = getBreadcrumbs();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-primary-100 to-accent-yellow-50">
-      <header className="bg-white/90 backdrop-blur-sm shadow-md border-b border-primary-200 sticky top-0 z-50">
+    <div className="min-h-screen relative bg-gradient-to-br from-primary-50 via-primary-100 to-accent-yellow-50">
+      {/* Immagine di sfondo */}
+      <div className="absolute inset-0 overflow-hidden">
+        <img 
+          src="/hero-image.jpg" 
+          alt="Sa-Ndo-Ka" 
+          className="w-full h-full object-cover opacity-20"
+        />
+        <div className="absolute inset-0 bg-gradient-to-br from-primary-50/80 via-primary-100/80 to-accent-yellow-50/80"></div>
+      </div>
+
+      <header className="relative bg-white/90 backdrop-blur-sm shadow-md border-b border-primary-200 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-4">
@@ -125,7 +135,7 @@ export default function DashboardLayout({ children, breadcrumbs, title }: Dashbo
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {title && (
           <div className="mb-6">
             <h2 className="text-3xl font-bold text-gray-900">{title}</h2>
