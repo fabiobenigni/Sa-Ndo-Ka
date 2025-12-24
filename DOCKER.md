@@ -103,14 +103,30 @@ NEXTAUTH_URL rilevato automaticamente: http://192.168.1.100
 ### 2. Build e Avvio
 
 ```bash
-# Build dell'immagine
+# Build dell'immagine (usa --no-cache per forzare il rebuild completo)
 docker-compose build
+
+# Oppure con rebuild completo (consigliato dopo aggiornamenti del codice)
+docker-compose build --no-cache
 
 # Avvia i container
 docker-compose up -d
 
 # Visualizza i log
 docker-compose logs -f
+```
+
+**Nota**: Dopo aver aggiornato il codice sorgente (es. dopo un `git pull`), è necessario rifare il build dell'immagine Docker per includere le nuove modifiche:
+
+```bash
+# Ferma i container
+docker-compose down
+
+# Ricostruisci l'immagine con le nuove modifiche
+docker-compose build --no-cache
+
+# Riavvia i container
+docker-compose up -d
 ```
 
 L'applicazione sarà disponibile su `http://localhost` (o sulla porta specificata).
