@@ -21,8 +21,12 @@ Crea un file `.env` nella root:
 
 ```env
 NEXTAUTH_SECRET=genera-una-chiave-segreta-sicura-qui
-NEXTAUTH_URL=http://localhost
+# NEXTAUTH_URL può essere lasciato vuoto per rilevamento automatico
+# Oppure impostalo manualmente: http://192.168.1.100, http://nas.local, etc.
+NEXTAUTH_URL=
 ```
+
+**Nota**: Se `NEXTAUTH_URL` è vuoto, l'applicazione tenta di rilevarlo automaticamente basandosi sull'IP della macchina host o sul dominio configurato. Vedi `DOCKER.md` per maggiori dettagli.
 
 ## Struttura
 

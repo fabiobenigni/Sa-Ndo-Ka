@@ -12,9 +12,15 @@ services:
       - NODE_ENV=production
       - DATABASE_URL=file:/app/data/sa-ndo-ka.db
       - NEXTAUTH_SECRET=${NEXTAUTH_SECRET:-change-this-secret-in-production}
-      - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost}
+      # NEXTAUTH_URL può essere impostato manualmente o rilevato automaticamente
+      # Esempi: http://192.168.1.100, http://nas.local, https://miodominio.com
+      - NEXTAUTH_URL=${NEXTAUTH_URL:-}
       - PORT=3000
       - HOSTNAME=0.0.0.0
+      # Variabili per il rilevamento automatico dell'URL
+      - HTTP_PORT=${HTTP_PORT:-80}
+      - HTTPS_PORT=${HTTPS_PORT:-}
+      - DOMAIN=${DOMAIN:-}
     volumes:
       # Volume per il database SQLite
       - ./data:/app/data

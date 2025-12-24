@@ -53,6 +53,7 @@ COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@prisma ./node_modul
 COPY --chown=nextjs:nodejs start.sh /app/start.sh
 RUN chmod +x /app/start.sh
 COPY --chown=nextjs:nodejs scripts ./scripts
+RUN chmod +x /app/scripts/detect-url.sh 2>/dev/null || true
 
 # Create directories for uploads and database
 RUN mkdir -p /app/uploads /app/data && \

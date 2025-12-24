@@ -20,7 +20,9 @@ DATABASE_URL=file:./data/sa-ndo-ka.db
 
 # NextAuth
 NEXTAUTH_SECRET=your-super-secret-key-change-this-in-production
-NEXTAUTH_URL=http://localhost
+# NEXTAUTH_URL può essere impostato manualmente o rilevato automaticamente
+# Vedi la sezione "Configurazione URL" per maggiori dettagli
+NEXTAUTH_URL=
 
 # Porte (opzionale)
 HTTP_PORT=80
@@ -29,6 +31,73 @@ HTTPS_PORT=443
 # Dominio per HTTPS (opzionale)
 DOMAIN=yourdomain.com
 CERTBOT_EMAIL=admin@yourdomain.com
+```
+
+### Configurazione URL (NEXTAUTH_URL)
+
+L'applicazione può essere accessibile tramite diversi indirizzi:
+- **localhost** (sviluppo locale)
+- **IP della macchina** (es. `http://192.168.1.100`)
+- **Nome host** (es. `http://nas.local`)
+- **Dominio** (es. `https://miodominio.com`)
+
+#### Opzione 1: Rilevamento Automatico (Consigliato)
+
+Se `NEXTAUTH_URL` non è impostato o è vuoto, l'applicazione tenta di rilevarlo automaticamente:
+
+```bash
+# Lascia NEXTAUTH_URL vuoto o non impostarlo
+NEXTAUTH_URL=
+```
+
+Lo script di rilevamento automatico:
+1. Cerca di ottenere l'IP della macchina host
+2. Usa la variabile `DOMAIN` se disponibile
+3. Usa le porte `HTTP_PORT` o `HTTPS_PORT` se configurate
+4. Fallback a `http://localhost:80` se niente altro funziona
+
+#### Opzione 2: Configurazione Manuale
+
+Imposta manualmente `NEXTAUTH_URL` nel file `.env`:
+
+**Per accesso tramite IP:**
+```bash
+NEXTAUTH_URL=http://192.168.1.100
+# Oppure con porta personalizzata
+NEXTAUTH_URL=http://192.168.1.100:8080
+```
+
+**Per accesso tramite nome host:**
+```bash
+NEXTAUTH_URL=http://nas.local
+# Oppure con porta personalizzata
+NEXTAUTH_URL=http://nas.local:3000
+```
+
+**Per accesso tramite dominio con HTTPS:**
+```bash
+NEXTAUTH_URL=https://miodominio.com
+# Assicurati di configurare anche HTTPS_PORT e DOMAIN
+HTTPS_PORT=443
+DOMAIN=miodominio.com
+```
+
+**Per sviluppo locale:**
+```bash
+NEXTAUTH_URL=http://localhost:3000
+```
+
+#### Verifica della Configurazione
+
+Dopo l'avvio, controlla i log per vedere quale URL è stato rilevato:
+
+```bash
+docker-compose logs app | grep NEXTAUTH_URL
+```
+
+Dovresti vedere un messaggio come:
+```
+NEXTAUTH_URL rilevato automaticamente: http://192.168.1.100
 ```
 
 ### 2. Build e Avvio
@@ -170,11 +239,12 @@ docker-compose logs nginx
 Per la produzione, assicurati di:
 
 1. ✅ Cambiare `NEXTAUTH_SECRET` con una chiave sicura
-2. ✅ Configurare `NEXTAUTH_URL` con il dominio corretto
+2. ✅ Configurare `NEXTAUTH_URL` con il dominio corretto (o lasciare vuoto per rilevamento automatico)
 3. ✅ Abilitare HTTPS con Let's Encrypt
 4. ✅ Configurare backup automatici del database
 5. ✅ Monitorare i log e le performance
 6. ✅ Configurare firewall per limitare accesso alle porte
+7. ✅ Verificare che l'applicazione sia accessibile dall'esterno se necessario
 
 ## Build Standalone
 
