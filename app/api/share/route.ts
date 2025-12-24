@@ -14,6 +14,46 @@ const shareSchema = z.object({
   permission: z.enum(['read', 'write', 'delete']),
 });
 
+export async function GET(request: Request) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
+    }
+
+    const { searchParams } = new URL(request.url);
+    const collectionId = searchParams.get('collectionId');
+
+    if (!collectionId) {
+      return NextResponse.json(
+        { error: 'collectionId richiesto' },
+        { status: 400 }
+      );
+    }
+
+    const shares = await prisma.collectionShare.findMany({
+      where: {
+        collectionId,
+        collection: {
+          userId: session.user.id,
+        },
+      },
+      include: {
+        user: true,
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return NextResponse.json(shares);
+  } catch (error) {
+    console.error('Error fetching shares:', error);
+    return NextResponse.json(
+      { error: 'Errore nel recupero delle condivisioni' },
+      { status: 500 }
+    );
+  }
+}
+
 export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);

@@ -5,6 +5,23 @@ import { prisma } from '@/lib/db';
 import OpenAI from 'openai';
 import Anthropic from '@anthropic-ai/sdk';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import crypto from 'crypto';
+
+function decrypt(encryptedText: string): string {
+  try {
+    const algorithm = 'aes-256-cbc';
+    const key = Buffer.from(process.env.NEXTAUTH_SECRET || 'default-key-32-chars-long!!', 'utf8').slice(0, 32);
+    const [ivHex, encrypted] = encryptedText.split(':');
+    if (!ivHex || !encrypted) return encryptedText; // Non cifrato
+    const iv = Buffer.from(ivHex, 'hex');
+    const decipher = crypto.createDecipheriv(algorithm, key, iv);
+    let decrypted = decipher.update(encrypted, 'hex', 'utf8');
+    decrypted += decipher.final('utf8');
+    return decrypted;
+  } catch {
+    return encryptedText; // Fallback se non cifrato
+  }
+}
 
 export async function POST(request: Request) {
   try {
@@ -53,9 +70,12 @@ export async function POST(request: Request) {
 
     let analysis: any = {};
 
+    // Decifra la chiave API
+    const apiKey = decrypt(aiConfig.apiKey);
+
     try {
       if (provider === 'openai') {
-        const openai = new OpenAI({ apiKey: aiConfig.apiKey });
+        const openai = new OpenAI({ apiKey });
         const response = await openai.chat.completions.create({
           model: 'gpt-4-vision-preview',
           messages: [
@@ -78,7 +98,7 @@ export async function POST(request: Request) {
         const content = response.choices[0].message.content;
         analysis = JSON.parse(content || '{}');
       } else if (provider === 'anthropic') {
-        const anthropic = new Anthropic({ apiKey: aiConfig.apiKey });
+        const anthropic = new Anthropic({ apiKey });
         const response = await anthropic.messages.create({
           model: 'claude-3-opus-20240229',
           max_tokens: 1024,
@@ -107,7 +127,7 @@ export async function POST(request: Request) {
           analysis = JSON.parse(content.text || '{}');
         }
       } else if (provider === 'google') {
-        const genAI = new GoogleGenerativeAI(aiConfig.apiKey);
+        const genAI = new GoogleGenerativeAI(apiKey);
         const model = genAI.getGenerativeModel({ model: 'gemini-pro-vision' });
         const response = await model.generateContent([
           `Analizza questa foto e genera una descrizione e le caratteristiche per un oggetto di tipo "${objectType.name}". Proprietà disponibili: ${objectType.properties.map(p => `${p.name} (${p.type})`).join(', ')}. Restituisci JSON con: description (stringa), properties (oggetto con chiavi = id proprietà, valori = valori delle proprietà).`,

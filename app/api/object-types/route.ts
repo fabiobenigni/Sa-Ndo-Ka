@@ -9,7 +9,7 @@ const objectTypeSchema = z.object({
   description: z.string().optional(),
   properties: z.array(z.object({
     name: z.string(),
-    type: z.enum(['text', 'number', 'select', 'boolean', 'date']),
+    type: z.enum(['text', 'number', 'select', 'boolean', 'date', 'year']),
     required: z.boolean().optional(),
     lookupValues: z.array(z.string()).optional(),
   })).optional(),
@@ -32,7 +32,9 @@ export async function GET(request: Request) {
       include: {
         properties: {
           include: {
-            lookupValues: true,
+            lookupValues: {
+              orderBy: { order: 'asc' },
+            },
           },
           orderBy: { order: 'asc' },
         },

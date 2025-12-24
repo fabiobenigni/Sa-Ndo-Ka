@@ -103,7 +103,7 @@ export default function HomePage() {
       <footer className="bg-gradient-to-r from-primary-900 via-primary-800 to-accent-red mt-20 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center">
-            <p className="text-primary-200">© 2024 Sa-Ndo-Ka. Tutti i diritti riservati.</p>
+            <p className="text-primary-200">© 2025 Sa-Ndo-Ka. Tutti i diritti riservati.</p>
           </div>
         </div>
       </footer>

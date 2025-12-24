@@ -26,8 +26,25 @@ model User {
   containers    Container[]
   objects       Object[]
   containerItems ContainerItem[]
+  passwordResets PasswordResetToken[]
   
   @@index([email])
+}
+
+// Token per reset password
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([userId])
+  @@index([expiresAt])
 }
 
 // Configurazione AI per utente
