@@ -56,3 +56,4 @@ deploy/*.tar.gz
 .page.tsx.swp
 *.swp
 *~
+public/SaNdoKa_Generated_Image.png
