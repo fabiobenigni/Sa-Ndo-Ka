@@ -55,6 +55,19 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
     }
 
+    // Verifica che l'utente esista nel database
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+    });
+
+    if (!user) {
+      console.error('User not found in database:', session.user.id);
+      return NextResponse.json(
+        { error: 'Utente non trovato nel database' },
+        { status: 404 }
+      );
+    }
+
     const body = await request.json();
     const { name, description } = collectionSchema.parse(body);
 
@@ -77,7 +90,7 @@ export async function POST(request: Request) {
 
     console.error('Error creating collection:', error);
     return NextResponse.json(
-      { error: 'Errore nella creazione della collezione' },
+      { error: 'Errore nella creazione della collezione', details: error instanceof Error ? error.message : 'Errore sconosciuto' },
       { status: 500 }
     );
   }

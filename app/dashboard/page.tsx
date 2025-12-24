@@ -10,6 +10,10 @@ export default function DashboardPage() {
   const router = useRouter();
   const [collections, setCollections] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [newCollection, setNewCollection] = useState({ name: '', description: '' });
+  const [creating, setCreating] = useState(false);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -32,6 +36,46 @@ export default function DashboardPage() {
       console.error('Error fetching collections:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleCreateCollection = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setCreating(true);
+    
+    if (!newCollection.name.trim()) {
+      setError('Il nome è obbligatorio');
+      setCreating(false);
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/collections', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: newCollection.name.trim(),
+          description: newCollection.description.trim() || undefined,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setNewCollection({ name: '', description: '' });
+        setShowCreateForm(false);
+        setError('');
+        await fetchCollections();
+      } else {
+        setError(data.error || 'Errore nella creazione della collezione');
+        console.error('Error creating collection:', data);
+      }
+    } catch (error) {
+      console.error('Error creating collection:', error);
+      setError('Si è verificato un errore durante la creazione');
+    } finally {
+      setCreating(false);
     }
   };
 
@@ -76,12 +120,67 @@ export default function DashboardPage() {
         </div>
 
         <div className="mb-6">
-          <Link
-            href="/dashboard/collections/new"
-            className="inline-block px-6 py-3 bg-gradient-to-r from-primary-600 to-primary-500 text-white rounded-lg hover:from-primary-700 hover:to-primary-600 font-medium shadow-lg hover:shadow-xl transition-all"
-          >
-            + Crea Collezione
-          </Link>
+          {!showCreateForm ? (
+            <button
+              onClick={() => setShowCreateForm(true)}
+              className="inline-block px-6 py-3 bg-gradient-to-r from-primary-600 to-primary-500 text-white rounded-lg hover:from-primary-700 hover:to-primary-600 font-medium shadow-lg hover:shadow-xl transition-all"
+            >
+              + Crea Collezione
+            </button>
+          ) : (
+            <form onSubmit={handleCreateCollection} className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-primary-200 p-6 mb-4">
+              <h3 className="text-xl font-semibold text-primary-800 mb-4">Nuova Collezione</h3>
+              {error && (
+                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                  {error}
+                </div>
+              )}
+              <div className="mb-4">
+                <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+                  Nome *
+                </label>
+                <input
+                  id="name"
+                  type="text"
+                  value={newCollection.name}
+                  onChange={(e) => setNewCollection({ ...newCollection, name: e.target.value })}
+                  required
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                />
+              </div>
+              <div className="mb-4">
+                <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
+                  Descrizione
+                </label>
+                <textarea
+                  id="description"
+                  value={newCollection.description}
+                  onChange={(e) => setNewCollection({ ...newCollection, description: e.target.value })}
+                  rows={3}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                />
+              </div>
+              <div className="flex space-x-3">
+                <button
+                  type="submit"
+                  disabled={creating}
+                  className="px-6 py-2 bg-gradient-to-r from-primary-600 to-primary-500 text-white rounded-lg hover:from-primary-700 hover:to-primary-600 font-medium disabled:opacity-50"
+                >
+                  {creating ? 'Creazione...' : 'Crea'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowCreateForm(false);
+                    setNewCollection({ name: '', description: '' });
+                  }}
+                  className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-medium"
+                >
+                  Annulla
+                </button>
+              </div>
+            </form>
+          )}
         </div>
 
         {collections.length === 0 ? (
