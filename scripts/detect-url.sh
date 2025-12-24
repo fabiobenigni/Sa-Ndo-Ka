@@ -36,8 +36,12 @@ fi
 if [ -z "$HOST_IP" ] && command -v ip >/dev/null 2>&1; then
   # Il gateway di default è spesso l'IP della macchina host
   GATEWAY=$(ip route | grep default | awk '{print $3}' | head -n1)
-  if [ -n "$GATEWAY" ] && [ "$GATEWAY" != "172.17.0.1" ] && [ "$GATEWAY" != "127.0.0.1" ]; then
-    HOST_IP="$GATEWAY"
+  # Filtra IPv6 e IP Docker interni, preferisci IPv4
+  if [ -n "$GATEWAY" ] && [ "$GATEWAY" != "172.17.0.1" ] && [ "$GATEWAY" != "127.0.0.1" ] && [ "$GATEWAY" != "::" ]; then
+    # Verifica che non sia un IPv6 (contiene :)
+    if echo "$GATEWAY" | grep -vq ":"; then
+      HOST_IP="$GATEWAY"
+    fi
   fi
 fi
 
@@ -54,17 +58,14 @@ if [ -z "$HOST_IP" ] && command -v hostname >/dev/null 2>&1; then
   fi
 fi
 
-# Se abbiamo un IP valido, usalo
+# Se abbiamo un IP valido, usalo (solo IPv4, non IPv6)
 if [ -n "$HOST_IP" ] && [ "$HOST_IP" != "127.0.0.1" ] && [ "$HOST_IP" != "localhost" ] && [ "$HOST_IP" != "172.17.0.1" ]; then
-  # Se la porta è 80 o 443, non includerla nell'URL
-  if [ "$PORT" = "80" ] && [ "$PROTOCOL" = "http" ]; then
-    echo "${PROTOCOL}://${HOST_IP}"
-  elif [ "$PORT" = "443" ] && [ "$PROTOCOL" = "https" ]; then
-    echo "${PROTOCOL}://${HOST_IP}"
-  else
+  # Verifica che non sia un IPv6 (contiene :)
+  if echo "$HOST_IP" | grep -vq ":"; then
+    # Sempre includi la porta per evitare problemi con NextAuth
     echo "${PROTOCOL}://${HOST_IP}:${PORT}"
+    exit 0
   fi
-  exit 0
 fi
 
 # Fallback: usa localhost con la porta corretta
