@@ -11,7 +11,7 @@ export default function SettingsPage() {
   const router = useRouter();
   const [objectTypes, setObjectTypes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'profile' | 'types' | 'ai' | 'app'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'types' | 'ai' | 'app' | 'trash'>('profile');
   const [showCreateTypeForm, setShowCreateTypeForm] = useState(false);
   const [newType, setNewType] = useState({ name: '', description: '' });
   const [creating, setCreating] = useState(false);
@@ -359,7 +359,119 @@ export default function SettingsPage() {
           <AppConfigPanel />
         </div>
       )}
+
+      {activeTab === 'trash' && (
+        <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-primary-200 p-6">
+          <h3 className="text-xl font-semibold text-primary-800 mb-4">Cestino</h3>
+          <TrashPanel />
+        </div>
+      )}
     </DashboardLayout>
+  );
+}
+
+// Componente per il cestino
+function TrashPanel() {
+  const [trashItems, setTrashItems] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [restoring, setRestoring] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchTrashItems();
+  }, []);
+
+  const fetchTrashItems = async () => {
+    try {
+      const response = await fetch('/api/trash');
+      if (response.ok) {
+        const data = await response.json();
+        setTrashItems(data);
+      }
+    } catch (error) {
+      console.error('Error fetching trash items:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRestore = async (itemId: string) => {
+    setRestoring(itemId);
+    try {
+      const response = await fetch(`/api/trash/${itemId}/restore`, {
+        method: 'POST',
+      });
+
+      if (response.ok) {
+        await fetchTrashItems();
+      } else {
+        const data = await response.json();
+        alert(data.error || 'Errore nel ripristino');
+      }
+    } catch (error) {
+      console.error('Error restoring item:', error);
+      alert('Errore nel ripristino dell\'elemento');
+    } finally {
+      setRestoring(null);
+    }
+  };
+
+  const getItemTypeLabel = (type: string) => {
+    switch (type) {
+      case 'collection':
+        return 'Collezione';
+      case 'container':
+        return 'Contenitore';
+      case 'object':
+        return 'Oggetto';
+      default:
+        return type;
+    }
+  };
+
+  if (loading) {
+    return <div className="text-center py-8">Caricamento...</div>;
+  }
+
+  if (trashItems.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-gray-600">Il cestino è vuoto</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <p className="text-sm text-gray-600 mb-4">
+        Gli elementi eliminati vengono mantenuti nel cestino per 30 giorni, poi vengono eliminati definitivamente.
+      </p>
+      {trashItems.map((item) => (
+        <div
+          key={item.id}
+          className="flex items-center justify-between p-4 border border-gray-200 rounded-lg bg-gray-50"
+        >
+          <div className="flex-1">
+            <div className="font-semibold text-gray-900">{item.name}</div>
+            <div className="text-sm text-gray-600">
+              Tipo: {getItemTypeLabel(item.itemType)} • Eliminato il:{' '}
+              {new Date(item.deletedAt).toLocaleDateString('it-IT')}
+            </div>
+            <div className="text-xs text-gray-500 mt-1">
+              {item.daysUntilPermanent > 0
+                ? `${item.daysUntilPermanent} giorni rimanenti prima dell'eliminazione definitiva`
+                : 'Sarà eliminato a breve'}
+            </div>
+          </div>
+          <button
+            onClick={() => handleRestore(item.id)}
+            disabled={restoring === item.id}
+            className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 text-sm"
+          >
+            {restoring === item.id ? 'Ripristino...' : 'Ripristina'}
+          </button>
+        </div>
+      ))}
+    </div>
   );
 }
 

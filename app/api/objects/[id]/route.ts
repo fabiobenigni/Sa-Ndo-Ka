@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/db';
+import { softDeleteObject } from '@/lib/soft-delete';
 
 export async function GET(
   request: Request,
@@ -68,6 +69,7 @@ export async function PUT(
       where: {
         id: params.id,
         userId: session.user.id,
+        deletedAt: null, // Solo oggetti non eliminati
       },
     });
 
@@ -152,6 +154,7 @@ export async function DELETE(
       where: {
         id: params.id,
         userId: session.user.id,
+        deletedAt: null, // Non già eliminato
       },
     });
 
@@ -162,9 +165,8 @@ export async function DELETE(
       );
     }
 
-    await prisma.object.delete({
-      where: { id: params.id },
-    });
+    // Soft delete dell'oggetto
+    await softDeleteObject(params.id, session.user.id);
 
     return NextResponse.json({ success: true });
   } catch (error) {

@@ -16,29 +16,48 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
     }
 
+    // Query per recuperare collezioni non eliminate
+    // Includiamo sia le collezioni dell'utente che quelle condivise
     const collections = await prisma.collection.findMany({
       where: {
-        OR: [
-          { userId: session.user.id },
+        AND: [
+          { deletedAt: null }, // Solo collezioni non eliminate
           {
-            shares: {
-              some: {
-                userId: session.user.id,
-                accepted: true,
+            OR: [
+              { userId: session.user.id },
+              {
+                shares: {
+                  some: {
+                    userId: session.user.id,
+                    accepted: true,
+                  },
+                },
               },
-            },
+            ],
           },
         ],
       },
       include: {
-        _count: {
-          select: { containers: true },
+        containers: {
+          where: {
+            deletedAt: null, // Solo contenitori non eliminati per il conteggio
+          },
         },
       },
       orderBy: { createdAt: 'desc' },
     });
 
-    return NextResponse.json(collections);
+    // Mappiamo i risultati per includere _count basato sui containers inclusi
+    const collectionsWithCount = collections.map(c => ({
+      ...c,
+      _count: {
+        containers: c.containers?.length || 0,
+      },
+    }));
+
+    console.log(`[Collections API] User: ${session.user.id}, Found: ${collectionsWithCount.length} collections`);
+
+    return NextResponse.json(collectionsWithCount);
   } catch (error) {
     console.error('Error fetching collections:', error);
     return NextResponse.json(

@@ -27,6 +27,7 @@ model User {
   objects       Object[]
   containerItems ContainerItem[]
   passwordResets PasswordResetToken[]
+  trashItems    TrashItem[]
   
   @@index([email])
 }
@@ -72,6 +73,8 @@ model Collection {
   name        String
   description String?
   userId      String
+  deletedAt   DateTime? // Soft delete
+  deletedBy   String?   // userId che ha eliminato
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -81,6 +84,7 @@ model Collection {
   shares      CollectionShare[]
 
   @@index([userId])
+  @@index([deletedAt])
 }
 
 // Condivisioni collezioni con permessi
@@ -111,6 +115,8 @@ model Container {
   collectionId String
   userId      String   // Utente che ha creato il contenitore
   qrCode      String   @unique // URL del QR code
+  deletedAt   DateTime? // Soft delete
+  deletedBy   String?   // userId che ha eliminato
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -122,6 +128,7 @@ model Container {
   @@index([collectionId])
   @@index([userId])
   @@index([qrCode])
+  @@index([deletedAt])
 }
 
 // Relazione contenitore-oggetto
@@ -169,6 +176,8 @@ model Object {
   objectTypeId String
   userId      String   // Utente che ha creato l'oggetto
   photoUrl    String?
+  deletedAt   DateTime? // Soft delete
+  deletedBy   String?   // userId che ha eliminato
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -180,6 +189,7 @@ model Object {
 
   @@index([objectTypeId])
   @@index([userId])
+  @@index([deletedAt])
 }
 
 // Proprietà/Caratteristiche (definizione)
@@ -241,5 +251,23 @@ model AppConfig {
   baseUrl   String   @default("http://localhost:3000")
   updatedAt DateTime @updatedAt
   updatedBy String?  // userId dell'utente che ha aggiornato
+}
+
+// Cestino per tracciare elementi eliminati
+model TrashItem {
+  id          String   @id @default(cuid())
+  itemType    String   // "collection", "container", "object"
+  itemId      String   // ID dell'elemento eliminato
+  itemData    String   // JSON con i dati dell'elemento al momento dell'eliminazione
+  userId      String   // Utente che ha eliminato
+  deletedAt   DateTime @default(now())
+  restoredAt  DateTime? // Data di ripristino se ripristinato
+  
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([itemType, itemId])
+  @@index([deletedAt])
+  @@index([restoredAt])
 }
 

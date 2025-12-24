@@ -40,7 +40,11 @@ export async function GET(request: Request) {
     }
 
     const objects = await prisma.object.findMany({
-      where,
+      where: {
+        ...where,
+        deletedAt: null, // Solo oggetti non eliminati
+        userId: session.user.id,
+      },
       include: {
         objectType: true,
         properties: {

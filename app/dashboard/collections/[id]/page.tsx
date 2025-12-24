@@ -35,10 +35,13 @@ export default function CollectionPage() {
 
   const fetchCollection = async () => {
     try {
-      const response = await fetch('/api/collections');
-      const data = await response.json();
-      const found = data.find((c: any) => c.id === collectionId);
-      setCollection(found);
+      const response = await fetch(`/api/collections/${collectionId}`);
+      if (response.ok) {
+        const data = await response.json();
+        setCollection(data);
+      } else {
+        console.error('Error fetching collection:', response.status);
+      }
     } catch (error) {
       console.error('Error fetching collection:', error);
     }

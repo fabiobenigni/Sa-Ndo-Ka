@@ -30,7 +30,9 @@ export async function GET(request: Request) {
     const collectionId = searchParams.get('collectionId');
 
     const where: any = {
+      deletedAt: null, // Solo contenitori non eliminati
       collection: {
+        deletedAt: null, // Solo collezioni non eliminate
         OR: [
           { userId: session.user.id },
           {
