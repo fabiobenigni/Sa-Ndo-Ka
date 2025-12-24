@@ -50,7 +50,6 @@ export const authOptions: NextAuthOptions = {
   },
   // Usa l'URL dalla richiesta quando disponibile, altrimenti usa NEXTAUTH_URL
   // Questo permette di funzionare con qualsiasi indirizzo (IP, dominio, localhost)
-  trustHost: true,
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
