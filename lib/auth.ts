@@ -3,7 +3,13 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 import bcrypt from 'bcryptjs';
 import { prisma } from './db';
 
+// Determina se siamo in HTTPS
+const isSecure = typeof process !== 'undefined' && process.env.NEXTAUTH_URL?.startsWith('https://');
+
 export const authOptions: NextAuthOptions = {
+  // Usa l'URL dalla richiesta quando disponibile (per supportare IP e domini diversi)
+  // In NextAuth v4, questo è gestito automaticamente se NEXTAUTH_URL non è impostato
+  // Ma dobbiamo comunque configurare i cookie correttamente
   providers: [
     CredentialsProvider({
       name: 'Credentials',
@@ -44,9 +50,43 @@ export const authOptions: NextAuthOptions = {
   ],
   session: {
     strategy: 'jwt',
+    maxAge: 30 * 24 * 60 * 60, // 30 giorni
   },
   pages: {
     signIn: '/login',
+  },
+  // Configurazione cookie per funzionare con IP e domini diversi
+  useSecureCookies: isSecure,
+  cookies: {
+    sessionToken: {
+      name: `next-auth.session-token`,
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: isSecure,
+        // Non impostare domain per permettere cookie su qualsiasi host/IP
+        // Questo permette ai cookie di funzionare con localhost, IP e domini
+      },
+    },
+    callbackUrl: {
+      name: `next-auth.callback-url`,
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: isSecure,
+      },
+    },
+    csrfToken: {
+      name: `next-auth.csrf-token`,
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: isSecure,
+      },
+    },
   },
   callbacks: {
     async jwt({ token, user }) {

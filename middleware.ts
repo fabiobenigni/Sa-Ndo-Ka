@@ -7,10 +7,14 @@ export async function middleware(request: NextRequest) {
     const token = await getToken({
       req: request,
       secret: process.env.NEXTAUTH_SECRET,
+      // Usa l'URL dalla richiesta per supportare qualsiasi host/IP
+      secureCookie: request.nextUrl.protocol === 'https:',
     });
 
     if (!token) {
-      return NextResponse.redirect(new URL('/login', request.url));
+      // Usa l'host dalla richiesta per il redirect
+      const loginUrl = new URL('/login', request.url);
+      return NextResponse.redirect(loginUrl);
     }
   }
 
