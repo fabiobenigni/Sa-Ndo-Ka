@@ -20,6 +20,9 @@ COPY . .
 # Generate Prisma Client
 RUN npx prisma generate
 
+# Build Next.js application
+RUN npm run build
+
 # Inizializza il database durante il build (se non esiste)
 RUN mkdir -p /app/data && \
     if [ ! -f "/app/data/sa-ndo-ka.db" ]; then \
