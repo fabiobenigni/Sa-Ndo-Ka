@@ -1,6 +1,10 @@
-# Sa-Ndo-Ka 🏴‍☠️
+<div align="center">
+  <img src="docs/images/app-icon.jpg" alt="Sa-Ndo-Ka Logo" width="200" height="200" style="border-radius: 20px;">
+  <h1>Sa-Ndo-Ka 🏴‍☠️</h1>
+  <p>Sistema di catalogazione intelligente per oggetti con QR code.</p>
+</div>
 
-Sistema di catalogazione intelligente per oggetti con QR code.
+![Hero Image](docs/images/hero-image.jpg)
 
 ## Caratteristiche
 
@@ -69,6 +73,8 @@ npm run dev
 Apri [http://localhost:3000](http://localhost:3000)
 
 ## Docker
+
+![Docker](docs/images/logout.jpg)
 
 ### Build
 
