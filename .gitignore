@@ -53,3 +53,6 @@ deploy/*.tar
 deploy/*.tar.gz
 
 *_da_sistemare.*
+.page.tsx.swp
+*.swp
+*~
