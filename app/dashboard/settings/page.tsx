@@ -172,6 +172,16 @@ export default function SettingsPage() {
           >
             Configurazione App
           </button>
+          <button
+            onClick={() => setActiveTab('trash')}
+            className={`px-4 py-2 font-medium transition-colors ${
+              activeTab === 'trash'
+                ? 'text-primary-700 border-b-2 border-primary-600'
+                : 'text-gray-600 hover:text-primary-600'
+            }`}
+          >
+            Cestino
+          </button>
         </div>
       </div>
 
@@ -375,6 +385,8 @@ function TrashPanel() {
   const [trashItems, setTrashItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [restoring, setRestoring] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState<string | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
 
   useEffect(() => {
     fetchTrashItems();
@@ -415,6 +427,28 @@ function TrashPanel() {
     }
   };
 
+  const handlePermanentDelete = async (itemId: string) => {
+    setDeleting(itemId);
+    setShowDeleteConfirm(null);
+    try {
+      const response = await fetch(`/api/trash/${itemId}/delete`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        await fetchTrashItems();
+      } else {
+        const data = await response.json();
+        alert(data.error || 'Errore nell\'eliminazione definitiva');
+      }
+    } catch (error) {
+      console.error('Error permanently deleting item:', error);
+      alert('Errore nell\'eliminazione definitiva dell\'elemento');
+    } finally {
+      setDeleting(null);
+    }
+  };
+
   const getItemTypeLabel = (type: string) => {
     switch (type) {
       case 'collection':
@@ -440,48 +474,95 @@ function TrashPanel() {
     );
   }
 
+  const itemToDelete = trashItems.find(item => item.id === showDeleteConfirm);
+
   return (
-    <div className="space-y-4">
-      <p className="text-sm text-gray-600 mb-4">
-        Gli elementi eliminati vengono mantenuti nel cestino per 30 giorni, poi vengono eliminati definitivamente.
-      </p>
-      {trashItems.map((item) => (
-        <div
-          key={item.id}
-          className="flex items-center justify-between p-4 border border-gray-200 rounded-lg bg-gray-50"
-        >
-          <div className="flex-1">
-            <div className="font-semibold text-gray-900">{item.name}</div>
-            <div className="text-sm text-gray-600">
-              Tipo: {getItemTypeLabel(item.itemType)} • Eliminato il:{' '}
-              {new Date(item.deletedAt).toLocaleDateString('it-IT')}
+    <>
+      <div className="space-y-4">
+        <p className="text-sm text-gray-600 mb-4">
+          Gli elementi eliminati vengono mantenuti nel cestino per 30 giorni, poi vengono eliminati definitivamente.
+        </p>
+        {trashItems.map((item) => (
+          <div
+            key={item.id}
+            className="flex items-center justify-between p-4 border border-gray-200 rounded-lg bg-gray-50"
+          >
+            <div className="flex-1">
+              <div className="font-semibold text-gray-900">{item.name}</div>
+              <div className="text-sm text-gray-600">
+                Tipo: {getItemTypeLabel(item.itemType)} • Eliminato il:{' '}
+                {new Date(item.deletedAt).toLocaleDateString('it-IT')}
+              </div>
+              <div className="text-xs text-gray-500 mt-1">
+                {item.daysUntilPermanent > 0
+                  ? `${item.daysUntilPermanent} giorni rimanenti prima dell'eliminazione definitiva`
+                  : 'Sarà eliminato a breve'}
+              </div>
             </div>
-            <div className="text-xs text-gray-500 mt-1">
-              {item.daysUntilPermanent > 0
-                ? `${item.daysUntilPermanent} giorni rimanenti prima dell'eliminazione definitiva`
-                : 'Sarà eliminato a breve'}
+            <div className="flex gap-2">
+              <button
+                onClick={() => handleRestore(item.id)}
+                disabled={restoring === item.id || deleting === item.id}
+                className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 text-sm"
+              >
+                {restoring === item.id ? 'Ripristino...' : 'Ripristina'}
+              </button>
+              <button
+                onClick={() => setShowDeleteConfirm(item.id)}
+                disabled={restoring === item.id || deleting === item.id}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 text-sm"
+              >
+                {deleting === item.id ? 'Eliminazione...' : 'Elimina definitivamente'}
+              </button>
             </div>
           </div>
-          <button
-            onClick={() => handleRestore(item.id)}
-            disabled={restoring === item.id}
-            className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 text-sm"
-          >
-            {restoring === item.id ? 'Ripristino...' : 'Ripristina'}
-          </button>
+        ))}
+      </div>
+      {showDeleteConfirm && itemToDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md mx-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              Eliminazione definitiva
+            </h3>
+            <p className="text-gray-700 mb-4">
+              Sei sicuro di voler eliminare definitivamente <strong>{itemToDelete.name}</strong>?
+              Questa azione è irreversibile e l&apos;elemento non potrà essere recuperato.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setShowDeleteConfirm(null)}
+                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+              >
+                Annulla
+              </button>
+              <button
+                onClick={() => handlePermanentDelete(itemToDelete.id)}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+              >
+                Elimina definitivamente
+              </button>
+            </div>
+          </div>
         </div>
-      ))}
-    </div>
+      )}
+    </>
   );
 }
 
 // Componente per configurazione App
 function AppConfigPanel() {
-  const [baseUrl, setBaseUrl] = useState('');
+  const [config, setConfig] = useState({
+    baseUrl: '',
+    smtpHost: '',
+    smtpPort: '',
+    smtpUser: '',
+    smtpPass: '',
+  });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [showSmtpPass, setShowSmtpPass] = useState(false);
 
   useEffect(() => {
     fetchConfig();
@@ -492,7 +573,13 @@ function AppConfigPanel() {
       const response = await fetch('/api/app-config');
       if (response.ok) {
         const data = await response.json();
-        setBaseUrl(data.baseUrl || '');
+        setConfig({
+          baseUrl: data.baseUrl || '',
+          smtpHost: data.smtpHost || '',
+          smtpPort: data.smtpPort || '',
+          smtpUser: data.smtpUser || '',
+          smtpPass: data.smtpPass || '',
+        });
       }
     } catch (error) {
       console.error('Error fetching app config:', error);
@@ -512,7 +599,7 @@ function AppConfigPanel() {
       const response = await fetch('/api/app-config', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ baseUrl }),
+        body: JSON.stringify(config),
       });
 
       if (response.ok) {
@@ -536,11 +623,6 @@ function AppConfigPanel() {
 
   return (
     <div className="space-y-6">
-      <p className="text-gray-600 mb-4">
-        Configura l&apos;URL base dell&apos;applicazione. Questo URL verrà utilizzato per generare i QR code dei contenitori.
-        Assicurati che l&apos;URL sia accessibile dalla rete dove verrà utilizzata l&apos;applicazione.
-      </p>
-
       {error && (
         <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
           {error}
@@ -553,28 +635,103 @@ function AppConfigPanel() {
         </div>
       )}
 
-      <form onSubmit={handleSave} className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Base URL
-          </label>
-          <input
-            type="url"
-            value={baseUrl}
-            onChange={(e) => setBaseUrl(e.target.value)}
-            placeholder="http://localhost:3000"
-            required
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-          />
-          <p className="mt-1 text-xs text-gray-500">
-            Esempi: http://localhost:3000, https://sa-ndo-ka.example.com, http://192.168.1.100:3000
+      <form onSubmit={handleSave} className="space-y-6">
+        {/* Base URL */}
+        <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-primary-200 p-6">
+          <h4 className="text-lg font-semibold text-primary-800 mb-4">URL Base</h4>
+          <p className="text-sm text-gray-600 mb-4">
+            Configura l&apos;URL base dell&apos;applicazione. Questo URL verrà utilizzato per generare i QR code dei contenitori.
           </p>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Base URL *
+            </label>
+            <input
+              type="url"
+              value={config.baseUrl}
+              onChange={(e) => setConfig({ ...config, baseUrl: e.target.value })}
+              placeholder="http://localhost:3000"
+              required
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            />
+            <p className="mt-1 text-xs text-gray-500">
+              Esempi: http://localhost:3000, https://sa-ndo-ka.example.com, http://192.168.1.100:3000
+            </p>
+          </div>
         </div>
+
+        {/* Configurazione SMTP */}
+        <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-primary-200 p-6">
+          <h4 className="text-lg font-semibold text-primary-800 mb-4">Configurazione Email (SMTP)</h4>
+          <p className="text-sm text-gray-600 mb-4">
+            Configura le credenziali SMTP per inviare inviti via email. Se non configurate, gli inviti dovranno essere condivisi manualmente.
+          </p>
+          <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                SMTP Host
+              </label>
+              <input
+                type="text"
+                value={config.smtpHost}
+                onChange={(e) => setConfig({ ...config, smtpHost: e.target.value })}
+                placeholder="smtp.gmail.com"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                SMTP Port
+              </label>
+              <input
+                type="text"
+                value={config.smtpPort}
+                onChange={(e) => setConfig({ ...config, smtpPort: e.target.value })}
+                placeholder="587"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                SMTP User
+              </label>
+              <input
+                type="email"
+                value={config.smtpUser}
+                onChange={(e) => setConfig({ ...config, smtpUser: e.target.value })}
+                placeholder="your-email@gmail.com"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                SMTP Password
+              </label>
+              <div className="relative">
+                <input
+                  type={showSmtpPass ? 'text' : 'password'}
+                  value={config.smtpPass}
+                  onChange={(e) => setConfig({ ...config, smtpPass: e.target.value })}
+                  placeholder="••••••••"
+                  className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowSmtpPass(!showSmtpPass)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                >
+                  {showSmtpPass ? '👁️' : '👁️‍🗨️'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
 
         <button
           type="submit"
           disabled={saving}
-          className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50"
+          className="px-6 py-3 bg-gradient-to-r from-primary-600 to-primary-500 text-white rounded-lg hover:from-primary-700 hover:to-primary-600 font-medium disabled:opacity-50 shadow-lg hover:shadow-xl transition-all"
         >
           {saving ? 'Salvataggio...' : 'Salva configurazione'}
         </button>

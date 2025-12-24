@@ -20,3 +20,36 @@ export async function setBaseUrl(baseUrl: string, userId?: string): Promise<void
   });
 }
 
+export async function getAppConfig() {
+  try {
+    const config = await prisma.appConfig.findUnique({
+      where: { id: 'singleton' },
+    });
+    return config;
+  } catch (error) {
+    return null;
+  }
+}
+
+export async function setAppConfig(config: {
+  baseUrl?: string;
+  smtpHost?: string;
+  smtpPort?: string;
+  smtpUser?: string;
+  smtpPass?: string;
+}, userId?: string): Promise<void> {
+  await prisma.appConfig.upsert({
+    where: { id: 'singleton' },
+    update: {
+      ...config,
+      updatedBy: userId,
+    },
+    create: {
+      id: 'singleton',
+      baseUrl: config.baseUrl || 'http://localhost:3000',
+      ...config,
+      updatedBy: userId,
+    },
+  });
+}
+

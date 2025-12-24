@@ -1,16 +1,69 @@
 version: '3.8'
 
 services:
-  sa-ndo-ka:
-    build: .
-    ports:
-      - "3000:3000"
-    volumes:
-      - ./uploads:/app/uploads
-      - ./sa-ndo-ka.db:/app/sa-ndo-ka.db
-    environment:
-      - DATABASE_URL=file:./sa-ndo-ka.db
-      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET:-change-this-secret}
-      - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
+  # Applicazione Next.js
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sa-ndo-ka-app
     restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=file:/app/data/sa-ndo-ka.db
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET:-change-this-secret-in-production}
+      - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost}
+      - PORT=3000
+      - HOSTNAME=0.0.0.0
+    volumes:
+      # Volume per il database SQLite
+      - ./data:/app/data
+      # Volume per gli uploads
+      - ./uploads:/app/uploads
+    networks:
+      - sa-ndo-ka-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health", "||", "exit", "1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
+  # Reverse proxy Nginx per HTTPS
+  nginx:
+    image: nginx:alpine
+    container_name: sa-ndo-ka-nginx
+    restart: unless-stopped
+    ports:
+      - "${HTTP_PORT:-80}:80"
+      - "${HTTPS_PORT:-443}:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      # Volume per certificati SSL (Let's Encrypt o custom)
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      # Volume per certificati Let's Encrypt (se usi certbot)
+      - certbot-certs:/etc/letsencrypt:ro
+    depends_on:
+      - app
+    networks:
+      - sa-ndo-ka-network
+
+  # Certbot per certificati Let's Encrypt (opzionale)
+  certbot:
+    image: certbot/certbot:latest
+    container_name: sa-ndo-ka-certbot
+    volumes:
+      - certbot-certs:/etc/letsencrypt
+      - certbot-challenges:/var/www/certbot
+    command: certonly --webroot --webroot-path=/var/www/certbot --email ${CERTBOT_EMAIL:-admin@example.com} --agree-tos --no-eff-email -d ${DOMAIN:-localhost}
+    profiles:
+      - ssl
+
+networks:
+  sa-ndo-ka-network:
+    driver: bridge
+
+volumes:
+  certbot-certs:
+  certbot-challenges:

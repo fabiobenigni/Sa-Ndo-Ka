@@ -92,7 +92,7 @@ export async function POST(request: Request) {
               some: {
                 userId: session.user.id,
                 accepted: true,
-                permission: { in: ['write', 'delete'] },
+                permission: 'full', // Accesso completo
               },
             },
           },

@@ -1,7 +1,8 @@
 // Schema database metamodello per Sa-Ndo-Ka
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x", "linux-musl-arm64-openssl-1.1.x"]
 }
 
 datasource db {
@@ -91,7 +92,7 @@ model Collection {
 model CollectionShare {
   id           String   @id @default(cuid())
   collectionId String
-  userId       String   // Utente con cui è condivisa
+  userId       String?  // Utente con cui è condivisa (null se non ancora registrato)
   permission   String   // "read", "write", "delete"
   invitedBy    String   // Email o telefono
   inviteMethod String?   // "email", "whatsapp"
@@ -100,11 +101,11 @@ model CollectionShare {
   updatedAt    DateTime @updatedAt
 
   collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
-  user         User       @relation("SharedWithUser", fields: [userId], references: [id], onDelete: Cascade)
+  user         User?      @relation("SharedWithUser", fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([collectionId, userId])
   @@index([userId])
   @@index([collectionId])
+  @@index([collectionId, invitedBy])
 }
 
 // Contenitori (hanno QR code)
@@ -249,6 +250,11 @@ model LookupValue {
 model AppConfig {
   id        String   @id @default("singleton")
   baseUrl   String   @default("http://localhost:3000")
+  // Configurazione SMTP
+  smtpHost  String?
+  smtpPort  String?
+  smtpUser  String?
+  smtpPass  String?  // Crittografato
   updatedAt DateTime @updatedAt
   updatedBy String?  // userId dell'utente che ha aggiornato
 }

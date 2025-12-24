@@ -67,7 +67,7 @@ export default function DeleteConfirmModal({
               ⚠️ Attenzione: Questa operazione è irreversibile!
             </p>
             <p className="text-red-700 text-sm mb-2">
-              Stai per eliminare la {getItemTypeLabel()} <strong>"{itemName}"</strong>.
+              Stai per eliminare la {getItemTypeLabel()} <strong>&quot;{itemName}&quot;</strong>.
             </p>
             {getCascadeMessage() && (
               <p className="text-red-700 text-sm mb-2">

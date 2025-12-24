@@ -4,6 +4,7 @@ import { useSession } from 'next-auth/react';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ReactNode } from 'react';
+import SearchBar from './SearchBar';
 
 interface BreadcrumbItem {
   label: string;
@@ -32,6 +33,8 @@ export default function DashboardLayout({ children, breadcrumbs, title }: Dashbo
         items.push({ label: 'Collezione', href: `/dashboard/collections/${paths[2]}` });
       } else if (paths[1] === 'settings') {
         items.push({ label: 'Impostazioni', href: '/dashboard/settings' });
+      } else if (paths[1] === 'search') {
+        items.push({ label: 'Ricerca', href: '/dashboard/search' });
       }
     } else if (paths[0] === 'container' && paths[1]) {
       items.push({ label: 'Contenitore', href: `/container/${paths[1]}` });
@@ -55,19 +58,20 @@ export default function DashboardLayout({ children, breadcrumbs, title }: Dashbo
       </div>
 
       <header className="relative bg-white/90 backdrop-blur-sm shadow-md border-b border-primary-200 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center space-x-4">
-              <Link href="/dashboard" className="flex items-center space-x-3">
-                <img src="/app-icon.jpg" alt="Sa-Ndo-Ka" className="h-10 w-10 rounded-lg" />
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-primary-600 to-accent-red text-transparent bg-clip-text">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-3 md:py-4">
+          {/* Header principale */}
+          <div className="flex justify-between items-center gap-2 md:gap-4">
+            <div className="flex items-center space-x-2 md:space-x-4 min-w-0 flex-1">
+              <Link href="/dashboard" className="flex items-center space-x-2 md:space-x-3 flex-shrink-0">
+                <img src="/app-icon.jpg" alt="Sa-Ndo-Ka" className="h-8 w-8 md:h-10 md:w-10 rounded-lg" />
+                <h1 className="text-lg md:text-2xl font-bold bg-gradient-to-r from-primary-600 to-accent-red text-transparent bg-clip-text">
                   Sa-Ndo-Ka
                 </h1>
               </Link>
               
               {/* Breadcrumb */}
               {currentBreadcrumbs.length > 1 && (
-                <nav className="hidden md:flex items-center space-x-2 text-sm">
+                <nav className="hidden lg:flex items-center space-x-2 text-sm">
                   {currentBreadcrumbs.map((item, index) => (
                     <span key={index} className="flex items-center">
                       {index > 0 && <span className="mx-2 text-gray-400">/</span>}
@@ -87,8 +91,13 @@ export default function DashboardLayout({ children, breadcrumbs, title }: Dashbo
               )}
             </div>
 
-            <div className="flex items-center space-x-4">
-              {/* Menu navigazione */}
+            <div className="flex items-center space-x-2 md:space-x-4 flex-shrink-0">
+              {/* Barra di ricerca desktop */}
+              <div className="hidden md:block flex-1 max-w-md">
+                <SearchBar />
+              </div>
+
+              {/* Menu navigazione desktop */}
               <div className="hidden md:flex items-center space-x-2">
                 <Link
                   href="/dashboard"
@@ -112,21 +121,34 @@ export default function DashboardLayout({ children, breadcrumbs, title }: Dashbo
                 </Link>
               </div>
 
+              {/* Pulsante ricerca mobile */}
+              <Link
+                href="/dashboard/search"
+                className="md:hidden px-2 py-2 text-primary-600 hover:bg-primary-50 active:bg-primary-100 rounded-lg touch-manipulation"
+                aria-label="Cerca"
+              >
+                <span className="text-lg">🔍</span>
+              </Link>
+
               {/* Pulsante indietro mobile */}
               {currentBreadcrumbs.length > 1 && (
                 <button
                   onClick={() => router.back()}
-                  className="md:hidden px-3 py-2 text-primary-600 hover:bg-primary-50 rounded-lg"
+                  className="md:hidden px-2 py-2 text-primary-600 hover:bg-primary-50 active:bg-primary-100 rounded-lg touch-manipulation"
                   aria-label="Indietro"
                 >
-                  ←
+                  <span className="text-lg">←</span>
                 </button>
               )}
 
-              <span className="text-primary-700 font-medium text-sm">{session?.user?.email}</span>
+              {/* Email utente - nascosta su mobile molto piccolo */}
+              <span className="hidden sm:inline text-primary-700 font-medium text-xs md:text-sm truncate max-w-[120px] md:max-w-none">
+                {session?.user?.email}
+              </span>
+              
               <Link
                 href="/logout"
-                className="px-4 py-2 text-primary-700 hover:text-primary-900 hover:bg-primary-50 rounded-lg transition-colors text-sm"
+                className="px-3 md:px-4 py-2 text-primary-700 hover:text-primary-900 hover:bg-primary-50 active:bg-primary-100 rounded-lg transition-colors text-xs md:text-sm touch-manipulation whitespace-nowrap"
               >
                 Esci
               </Link>

@@ -19,11 +19,12 @@ export default function ShareCollectionPage() {
     email: '',
     phone: '',
     method: 'email' as 'email' | 'whatsapp',
-    permission: 'read' as 'read' | 'write' | 'delete',
+    permission: 'read' as 'read' | 'full',
   });
   const [inviting, setInviting] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
+  const [whatsappLink, setWhatsappLink] = useState<string | null>(null);
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -55,9 +56,11 @@ export default function ShareCollectionPage() {
     try {
       const response = await fetch(`/api/share?collectionId=${collectionId}`);
       const data = await response.json();
-      setShares(data);
+      // Assicurati che data sia sempre un array
+      setShares(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error fetching shares:', error);
+      setShares([]); // In caso di errore, imposta array vuoto
     }
   };
 
@@ -94,11 +97,31 @@ export default function ShareCollectionPage() {
       const data = await response.json();
 
       if (response.ok) {
-        setInviteData({ email: '', phone: '', method: 'email', permission: 'read' });
-        setShowInviteForm(false);
-        await fetchShares();
+        if (data.whatsappLink) {
+          // Per WhatsApp, mostra il link invece di chiudere il form
+          setWhatsappLink(data.whatsappLink);
+          setInviteData({ email: '', phone: '', method: 'email', permission: 'read' });
+          setShowInviteForm(false);
+          setError('');
+          await fetchShares();
+        } else if (data.warning) {
+          // Mostra un warning ma considera comunque l'invito creato
+          alert(`Invito creato, ma: ${data.warning}\n\nPuoi condividere manualmente questo link:\n${data.inviteUrl || ''}`);
+          setInviteData({ email: '', phone: '', method: 'email', permission: 'read' });
+          setShowInviteForm(false);
+          setError('');
+          await fetchShares();
+        } else {
+          setInviteData({ email: '', phone: '', method: 'email', permission: 'read' });
+          setShowInviteForm(false);
+          setError('');
+          await fetchShares();
+        }
       } else {
-        setError(data.error || 'Errore nell\'invio dell\'invito');
+        // Mostra errore dettagliato
+        const errorMessage = data.error || data.details || 'Errore nell\'invio dell\'invito';
+        console.error('[Share Page] API Error:', data);
+        setError(errorMessage);
       }
     } catch (error) {
       console.error('Error inviting:', error);
@@ -161,6 +184,54 @@ export default function ShareCollectionPage() {
           </button>
         </div>
 
+        {whatsappLink && (
+          <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+            <h4 className="font-semibold text-green-800 mb-2">Link WhatsApp generato!</h4>
+            <p className="text-sm text-green-700 mb-3">
+              Clicca sul link qui sotto per aprire WhatsApp e inviare l&apos;invito:
+            </p>
+            <a
+              href={whatsappLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium mb-2"
+            >
+              📱 Apri WhatsApp
+            </a>
+            <div className="mt-3">
+              <p className="text-xs text-green-600 mb-1">Oppure copia il link:</p>
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={whatsappLink}
+                  readOnly
+                  className="flex-1 px-3 py-2 bg-white border border-green-300 rounded text-sm"
+                />
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(whatsappLink);
+                    alert('Link copiato!');
+                  }}
+                  className="px-3 py-2 bg-green-600 text-white rounded hover:bg-green-700 text-sm"
+                >
+                  Copia
+                </button>
+              </div>
+            </div>
+            <button
+              onClick={() => setWhatsappLink(null)}
+              className="mt-2 text-xs text-green-600 hover:text-green-800 underline"
+            >
+              Chiudi
+            </button>
+          </div>
+        )}
+
+        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-blue-800 text-sm">
+          <strong>Nota:</strong> Per inviare inviti via email, configura SMTP nella sezione Configurazione App.
+          Per WhatsApp, viene generato un link che puoi condividere direttamente.
+        </div>
+
         {showInviteForm && (
           <form onSubmit={handleInvite} className="mb-6 p-4 bg-primary-50 rounded-lg">
             <h4 className="font-semibold text-primary-800 mb-3">Nuovo Invito</h4>
@@ -220,9 +291,8 @@ export default function ShareCollectionPage() {
                 onChange={(e) => setInviteData({ ...inviteData, permission: e.target.value as any })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg"
               >
-                <option value="read">Solo lettura</option>
-                <option value="write">Modifica</option>
-                <option value="delete">Eliminazione</option>
+                <option value="read">Solo Lettura</option>
+                <option value="full">Accesso Completo</option>
               </select>
             </div>
             <div className="flex space-x-2">
@@ -249,7 +319,7 @@ export default function ShareCollectionPage() {
         )}
 
         <div className="space-y-3">
-          {shares.length === 0 ? (
+          {!Array.isArray(shares) || shares.length === 0 ? (
             <p className="text-gray-600">Nessuna condivisione ancora</p>
           ) : (
             shares.map((share) => (
@@ -260,7 +330,7 @@ export default function ShareCollectionPage() {
                       {share.user?.email || share.invitedBy}
                     </div>
                     <div className="text-sm text-gray-600 mt-1">
-                      Permesso: {share.permission === 'read' ? 'Solo lettura' : share.permission === 'write' ? 'Modifica' : 'Eliminazione'}
+                      Permesso: {share.permission === 'read' ? 'Solo Lettura' : 'Accesso Completo'}
                     </div>
                     <div className="text-xs text-gray-500 mt-1">
                       {share.accepted ? 'Accettato' : 'In attesa'} • {share.inviteMethod === 'email' ? 'Email' : 'WhatsApp'}

@@ -33,7 +33,7 @@ export async function PUT(
                 some: {
                   userId: session.user.id,
                   accepted: true,
-                  permission: { in: ['write', 'delete'] },
+                  permission: 'full', // Accesso completo
                 },
               },
             },
@@ -99,7 +99,7 @@ export async function DELETE(
                 some: {
                   userId: session.user.id,
                   accepted: true,
-                  permission: { in: ['write', 'delete'] },
+                  permission: 'full', // Accesso completo
                 },
               },
             },

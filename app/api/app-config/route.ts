@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
-import { getBaseUrl, setBaseUrl } from '@/lib/app-config';
+import { getBaseUrl, setBaseUrl, getAppConfig, setAppConfig } from '@/lib/app-config';
 
 export async function GET() {
   try {
@@ -10,8 +10,14 @@ export async function GET() {
       return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
     }
 
-    const baseUrl = await getBaseUrl();
-    return NextResponse.json({ baseUrl });
+    const config = await getAppConfig();
+    return NextResponse.json({
+      baseUrl: config?.baseUrl || process.env.NEXTAUTH_URL || 'http://localhost:3000',
+      smtpHost: config?.smtpHost || process.env.SMTP_HOST || '',
+      smtpPort: config?.smtpPort || process.env.SMTP_PORT || '',
+      smtpUser: config?.smtpUser || process.env.SMTP_USER || '',
+      smtpPass: config?.smtpPass || process.env.SMTP_PASS || '',
+    });
   } catch (error) {
     console.error('Error fetching app config:', error);
     return NextResponse.json(
@@ -29,27 +35,41 @@ export async function PUT(request: Request) {
     }
 
     const body = await request.json();
-    const { baseUrl } = body;
+    const {
+      baseUrl,
+      smtpHost,
+      smtpPort,
+      smtpUser,
+      smtpPass,
+    } = body;
 
-    if (!baseUrl || typeof baseUrl !== 'string') {
-      return NextResponse.json(
-        { error: 'Base URL non valida' },
-        { status: 400 }
-      );
+    // Valida baseUrl se fornita
+    if (baseUrl) {
+      if (typeof baseUrl !== 'string') {
+        return NextResponse.json(
+          { error: 'Base URL non valida' },
+          { status: 400 }
+        );
+      }
+      try {
+        new URL(baseUrl);
+      } catch {
+        return NextResponse.json(
+          { error: 'Formato URL non valido' },
+          { status: 400 }
+        );
+      }
     }
 
-    // Valida formato URL
-    try {
-      new URL(baseUrl);
-    } catch {
-      return NextResponse.json(
-        { error: 'Formato URL non valido' },
-        { status: 400 }
-      );
-    }
+    await setAppConfig({
+      baseUrl,
+      smtpHost,
+      smtpPort,
+      smtpUser,
+      smtpPass,
+    }, session.user.id);
 
-    await setBaseUrl(baseUrl, session.user.id);
-    return NextResponse.json({ success: true, baseUrl });
+    return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error updating app config:', error);
     return NextResponse.json(

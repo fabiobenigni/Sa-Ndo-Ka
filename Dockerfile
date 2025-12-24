@@ -8,8 +8,11 @@ COPY package*.json ./
 COPY prisma ./prisma/
 
 # Install dependencies
-# Usa npm ci se package-lock.json esiste, altrimenti npm install con --legacy-peer-deps
-RUN if [ -f package-lock.json ]; then npm ci; else npm install --legacy-peer-deps; fi
+RUN if [ -f package-lock.json ]; then \
+      npm ci --legacy-peer-deps; \
+    else \
+      npm install --legacy-peer-deps; \
+    fi
 
 # Copy source code
 COPY . .
@@ -17,8 +20,11 @@ COPY . .
 # Generate Prisma Client
 RUN npx prisma generate
 
-# Build Next.js app
-RUN npm run build
+# Inizializza il database durante il build (se non esiste)
+RUN mkdir -p /app/data && \
+    if [ ! -f "/app/data/sa-ndo-ka.db" ]; then \
+      DATABASE_URL="file:./data/sa-ndo-ka.db" npx prisma db push --accept-data-loss --skip-generate || echo "Database init skipped"; \
+    fi
 
 # Production stage
 FROM node:20-alpine AS runner
@@ -27,24 +33,30 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 
+# Install dumb-init, curl and OpenSSL libraries for Prisma
+# For Prisma on Alpine, we need to ensure OpenSSL compatibility
+RUN apk add --no-cache dumb-init curl openssl libc6-compat
+
 # Create non-root user
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 nextjs
 
-# Copy necessary files
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/.next/standalone ./
-COPY --from=builder /app/.next/static ./.next/static
-COPY --from=builder /app/prisma ./prisma
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
+# Copy necessary files from builder
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@prisma ./node_modules/@prisma
 
-# Copy start script
-COPY start.sh /app/start.sh
+# Copy start script and init script
+COPY --chown=nextjs:nodejs start.sh /app/start.sh
 RUN chmod +x /app/start.sh
+COPY --chown=nextjs:nodejs scripts ./scripts
 
-# Create uploads directory
-RUN mkdir -p uploads && chown -R nextjs:nodejs uploads
+# Create directories for uploads and database
+RUN mkdir -p /app/uploads /app/data && \
+    chown -R nextjs:nodejs /app/uploads /app/data
 
 # Set correct permissions
 RUN chown -R nextjs:nodejs /app
@@ -53,12 +65,13 @@ EXPOSE 3000
 
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
+# Force Prisma to use binary engine to avoid OpenSSL issues on Alpine
+ENV PRISMA_CLI_BINARY_TARGETS=linux-musl-openssl-3.0.x
 
 WORKDIR /app
 
-# Cambia utente dopo aver impostato tutto
+# Use dumb-init to handle signals properly
 USER nextjs
 
-# Usa sh per eseguire lo script
+ENTRYPOINT ["dumb-init", "--"]
 CMD ["sh", "/app/start.sh"]
-
