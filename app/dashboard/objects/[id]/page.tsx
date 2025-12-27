@@ -242,7 +242,15 @@ export default function ObjectDetailPage() {
                           formData.append('name', analysis.name || object.name);
                           formData.append('description', analysis.description || '');
                           formData.append('objectTypeId', object.objectTypeId);
-                          formData.append('properties', JSON.stringify(analysis.properties || {}));
+                          
+                          // Assicurati che properties sia sempre un oggetto valido
+                          let propertiesToSave = {};
+                          if (analysis && analysis.properties) {
+                            if (typeof analysis.properties === 'object' && !Array.isArray(analysis.properties)) {
+                              propertiesToSave = analysis.properties;
+                            }
+                          }
+                          formData.append('properties', JSON.stringify(propertiesToSave));
 
                           const updateResponse = await fetch(`/api/objects/${object.id}`, {
                             method: 'PUT',

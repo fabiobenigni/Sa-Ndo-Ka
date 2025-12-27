@@ -103,14 +103,21 @@ export async function PUT(
 
     let properties: Record<string, any> = {};
     try {
-      if (propertiesJson) {
-        properties = JSON.parse(propertiesJson);
-        if (typeof properties !== 'object' || Array.isArray(properties)) {
+      if (propertiesJson && propertiesJson.trim() !== '') {
+        const parsed = JSON.parse(propertiesJson);
+        if (typeof parsed === 'object' && !Array.isArray(parsed) && parsed !== null) {
+          properties = parsed;
+        } else {
+          console.warn('Properties JSON is not a valid object:', propertiesJson);
           properties = {};
         }
+      } else {
+        console.log('Properties JSON is empty or null, using empty object');
+        properties = {};
       }
     } catch (error) {
       console.error('Error parsing properties JSON:', error);
+      console.error('Properties JSON value:', propertiesJson);
       properties = {};
     }
 

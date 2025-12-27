@@ -199,7 +199,15 @@ export default function ContainerView({ container }: ContainerViewProps) {
                               updateFormData.append('name', result.objectName);
                               updateFormData.append('description', result.analysis.description || '');
                               updateFormData.append('objectTypeId', obj.object.objectTypeId);
-                              updateFormData.append('properties', JSON.stringify(result.analysis.properties || {}));
+                              
+                              // Assicurati che properties sia sempre un oggetto valido
+                              let propertiesToSave = {};
+                              if (result.analysis && result.analysis.properties) {
+                                if (typeof result.analysis.properties === 'object' && !Array.isArray(result.analysis.properties)) {
+                                  propertiesToSave = result.analysis.properties;
+                                }
+                              }
+                              updateFormData.append('properties', JSON.stringify(propertiesToSave));
 
                               console.log(`Aggiornamento oggetto ${result.objectId}:`, {
                                 name: result.objectName,
