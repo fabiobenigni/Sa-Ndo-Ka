@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/DashboardLayout';
 import ObjectForm from '@/components/ObjectForm';
 import MoveObjectsModal from '@/components/MoveObjectsModal';
+import ErrorModal from '@/components/ErrorModal';
 import Link from 'next/link';
 
 interface ContainerViewProps {
@@ -21,6 +22,12 @@ export default function ContainerView({ container }: ContainerViewProps) {
   const [selectedObjectIds, setSelectedObjectIds] = useState<Set<string>>(new Set());
   const [showMoveModal, setShowMoveModal] = useState(false);
   const [moving, setMoving] = useState(false);
+  const [analyzingBatch, setAnalyzingBatch] = useState(false);
+  const [errorModal, setErrorModal] = useState<{ isOpen: boolean; title: string; message: string }>({
+    isOpen: false,
+    title: '',
+    message: '',
+  });
   const [viewMode, setViewMode] = useState<'tiles' | 'table'>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('containerViewMode');
@@ -163,6 +170,7 @@ export default function ContainerView({ container }: ContainerViewProps) {
                         return;
                       }
 
+                      setAnalyzingBatch(true);
                       try {
                         const response = await fetch('/api/ai/analyze-batch', {
                           method: 'POST',
@@ -178,13 +186,15 @@ export default function ContainerView({ container }: ContainerViewProps) {
                           // Aggiorna gli oggetti con i risultati dell'analisi
                           for (const result of data.results) {
                             try {
+                              const formData = new FormData();
+                              formData.append('name', result.objectName);
+                              formData.append('description', result.analysis.description || '');
+                              formData.append('objectTypeId', objects.find((item: any) => item.object.id === result.objectId)?.object.objectTypeId || '');
+                              formData.append('properties', JSON.stringify(result.analysis.properties || {}));
+
                               await fetch(`/api/objects/${result.objectId}`, {
                                 method: 'PUT',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({
-                                  description: result.analysis.description,
-                                  properties: result.analysis.properties || {},
-                                }),
+                                body: formData,
                               });
                             } catch (error) {
                               console.error(`Error updating object ${result.objectId}:`, error);
@@ -193,22 +203,41 @@ export default function ContainerView({ container }: ContainerViewProps) {
 
                           let message = `Analisi completata!\n\nAnalizzati: ${data.analyzed}/${data.total}`;
                           if (data.errors.length > 0) {
-                            message += `\nErrori: ${data.errors.length}`;
+                            message += `\n\nErrori: ${data.errors.length}`;
                             message += '\n\nOggetti con errori:\n' + data.errors.map((e: any) => `- ${e.objectName}: ${e.error}`).join('\n');
+                            
+                            // Mostra il modale con gli errori
+                            setErrorModal({
+                              isOpen: true,
+                              title: 'Risultati Analisi AI',
+                              message: message,
+                            });
+                          } else {
+                            alert('Analisi completata con successo!');
+                            fetchObjects();
                           }
-                          alert(message);
-                          fetchObjects();
                         } else {
-                          alert(data.error || 'Errore nell\'analisi batch');
+                          setErrorModal({
+                            isOpen: true,
+                            title: 'Errore Analisi AI',
+                            message: data.error || 'Errore nell\'analisi batch',
+                          });
                         }
                       } catch (error) {
                         console.error('Error in batch analyze:', error);
-                        alert('Errore nell\'analisi batch');
+                        setErrorModal({
+                          isOpen: true,
+                          title: 'Errore Analisi AI',
+                          message: error instanceof Error ? error.message : 'Errore nell\'analisi batch',
+                        });
+                      } finally {
+                        setAnalyzingBatch(false);
                       }
                     }}
-                    className="px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium text-sm"
+                    disabled={analyzingBatch}
+                    className="px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium text-sm disabled:opacity-50"
                   >
-                    🔍 Analizza con AI ({selectedObjectIds.size})
+                    {analyzingBatch ? 'Analizzando...' : `🔍 Analizza con AI (${selectedObjectIds.size})`}
                   </button>
                 </>
               )}

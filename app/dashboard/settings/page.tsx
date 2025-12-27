@@ -1081,6 +1081,10 @@ function TypePropertiesEditor({ type, onUpdate }: { type: any; onUpdate: () => v
 function AIConfigPanel() {
   const [configs, setConfigs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [apiKeys, setApiKeys] = useState<Record<string, string>>({});
+  const [enabledStates, setEnabledStates] = useState<Record<string, boolean>>({});
+  const [saving, setSaving] = useState<Record<string, boolean>>({});
+  const [saveMessage, setSaveMessage] = useState<Record<string, string>>({});
 
   useEffect(() => {
     fetchConfigs();
@@ -1091,6 +1095,15 @@ function AIConfigPanel() {
       const response = await fetch('/api/ai/config');
       const data = await response.json();
       setConfigs(data);
+      // Inizializza gli stati locali
+      const keys: Record<string, string> = {};
+      const enabled: Record<string, boolean> = {};
+      data.forEach((config: any) => {
+        keys[config.provider] = '';
+        enabled[config.provider] = config.enabled || false;
+      });
+      setApiKeys(keys);
+      setEnabledStates(enabled);
     } catch (error) {
       console.error('Error fetching AI configs:', error);
     } finally {
@@ -1098,24 +1111,38 @@ function AIConfigPanel() {
     }
   };
 
-  const handleUpdateConfig = async (provider: string, apiKey: string, enabled: boolean) => {
+  const handleSaveConfig = async (provider: string) => {
+    setSaving({ ...saving, [provider]: true });
+    setSaveMessage({ ...saveMessage, [provider]: '' });
+    
     try {
       const response = await fetch('/api/ai/config', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ provider, apiKey, enabled }),
+        body: JSON.stringify({ 
+          provider, 
+          apiKey: apiKeys[provider] || '', 
+          enabled: enabledStates[provider] || false 
+        }),
       });
 
       if (response.ok) {
         await fetchConfigs();
-        alert(`Configurazione ${provider} salvata con successo!`);
+        setSaveMessage({ ...saveMessage, [provider]: 'Configurazione salvata con successo!' });
+        // Reset il campo API key dopo il salvataggio
+        setApiKeys({ ...apiKeys, [provider]: '' });
+        setTimeout(() => {
+          setSaveMessage({ ...saveMessage, [provider]: '' });
+        }, 3000);
       } else {
         const errorData = await response.json();
-        alert(`Errore nel salvataggio: ${errorData.error || 'Errore sconosciuto'}`);
+        setSaveMessage({ ...saveMessage, [provider]: `Errore: ${errorData.error || 'Errore sconosciuto'}` });
       }
     } catch (error) {
       console.error('Error updating AI config:', error);
-      alert('Errore nel salvataggio della configurazione');
+      setSaveMessage({ ...saveMessage, [provider]: 'Errore nel salvataggio della configurazione' });
+    } finally {
+      setSaving({ ...saving, [provider]: false });
     }
   };
 
@@ -1137,26 +1164,44 @@ function AIConfigPanel() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   API Key
                 </label>
-                <input
-                  type="password"
-                  defaultValue={config?.apiKey ? '••••••••' : ''}
-                  placeholder={provider.placeholder}
-                  onChange={(e) => {
-                    // Salva quando l'utente inserisce/modifica la chiave
-                    if (e.target.value && e.target.value !== '••••••••') {
-                      handleUpdateConfig(provider.id, e.target.value, config?.enabled || false);
-                    }
-                  }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white"
-                />
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={apiKeys[provider.id] || ''}
+                    placeholder={provider.placeholder}
+                    onChange={(e) => {
+                      setApiKeys({ ...apiKeys, [provider.id]: e.target.value });
+                      setSaveMessage({ ...saveMessage, [provider.id]: '' });
+                    }}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white"
+                  />
+                  <button
+                    onClick={() => handleSaveConfig(provider.id)}
+                    disabled={saving[provider.id]}
+                    className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium disabled:opacity-50 whitespace-nowrap"
+                  >
+                    {saving[provider.id] ? 'Salvataggio...' : 'Salva'}
+                  </button>
+                </div>
+                {saveMessage[provider.id] && (
+                  <p className={`text-xs mt-1 ${saveMessage[provider.id].includes('Errore') ? 'text-red-600' : 'text-green-600'}`}>
+                    {saveMessage[provider.id]}
+                  </p>
+                )}
+                {config?.apiKey && !apiKeys[provider.id] && (
+                  <p className="text-xs text-gray-500 mt-1">
+                    API Key già configurata (inserisci una nuova chiave per aggiornarla)
+                  </p>
+                )}
               </div>
               <label className="flex items-center">
                 <input
                   type="checkbox"
-                  checked={config?.enabled || false}
-                  onChange={(e) =>
-                    handleUpdateConfig(provider.id, config?.apiKey || '', e.target.checked)
-                  }
+                  checked={enabledStates[provider.id] || false}
+                  onChange={(e) => {
+                    setEnabledStates({ ...enabledStates, [provider.id]: e.target.checked });
+                    handleSaveConfig(provider.id);
+                  }}
                   className="mr-2"
                 />
                 <span className="text-sm text-gray-700">Abilita analisi AI</span>

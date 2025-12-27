@@ -4,6 +4,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter, useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
+import ErrorModal from '@/components/ErrorModal';
 import Link from 'next/link';
 import ObjectForm from '@/components/ObjectForm';
 
@@ -18,6 +19,12 @@ export default function ObjectDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [isEditing, setIsEditing] = useState(false);
+  const [analyzing, setAnalyzing] = useState(false);
+  const [errorModal, setErrorModal] = useState<{ isOpen: boolean; title: string; message: string }>({
+    isOpen: false,
+    title: '',
+    message: '',
+  });
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -185,6 +192,7 @@ export default function ObjectDetailPage() {
                     return;
                   }
 
+                  setAnalyzing(true);
                   try {
                     const photoUrl = object.photoUrl.startsWith('/api/uploads/')
                       ? object.photoUrl
@@ -200,6 +208,7 @@ export default function ObjectDetailPage() {
                         const base64Image = reader.result as string;
                         const providers = ['anthropic', 'openai', 'google'];
                         let analysis = null;
+                        let lastError: string | null = null;
 
                         for (const provider of providers) {
                           try {
@@ -216,9 +225,14 @@ export default function ObjectDetailPage() {
                             if (analyzeResponse.ok) {
                               analysis = await analyzeResponse.json();
                               break;
+                            } else {
+                              const errorData = await analyzeResponse.json();
+                              lastError = errorData.error || `Errore con ${provider}`;
+                              console.error(`Errore con ${provider}:`, errorData);
                             }
                           } catch (err) {
                             console.error(`Errore con ${provider}:`, err);
+                            lastError = err instanceof Error ? err.message : `Errore di connessione con ${provider}`;
                           }
                         }
 
@@ -240,25 +254,53 @@ export default function ObjectDetailPage() {
                             window.location.reload();
                           } else {
                             const errorData = await updateResponse.json();
-                            alert(`Errore nell'aggiornamento: ${errorData.error || 'Errore sconosciuto'}`);
+                            setErrorModal({
+                              isOpen: true,
+                              title: 'Errore Aggiornamento',
+                              message: `Errore nell'aggiornamento dell'oggetto:\n\n${errorData.error || 'Errore sconosciuto'}`,
+                            });
                           }
                         } else {
-                          alert('Nessun provider AI disponibile o configurato correttamente');
+                          setErrorModal({
+                            isOpen: true,
+                            title: 'Errore Analisi AI',
+                            message: lastError || 'Nessun provider AI disponibile o configurato correttamente.\n\nVerifica la configurazione nelle Impostazioni → Configurazione AI.',
+                          });
                         }
                       } catch (error) {
                         console.error('Error in analysis:', error);
-                        alert('Errore nell\'analisi della foto');
+                        setErrorModal({
+                          isOpen: true,
+                          title: 'Errore Analisi AI',
+                          message: error instanceof Error ? error.message : 'Errore nell\'analisi della foto',
+                        });
+                      } finally {
+                        setAnalyzing(false);
                       }
+                    };
+                    reader.onerror = () => {
+                      setErrorModal({
+                        isOpen: true,
+                        title: 'Errore',
+                        message: 'Errore nella lettura della foto',
+                      });
+                      setAnalyzing(false);
                     };
                     reader.readAsDataURL(blob);
                   } catch (error) {
                     console.error('Error loading photo:', error);
-                    alert('Errore nel caricamento della foto');
+                    setErrorModal({
+                      isOpen: true,
+                      title: 'Errore',
+                      message: error instanceof Error ? error.message : 'Errore nel caricamento della foto',
+                    });
+                    setAnalyzing(false);
                   }
                 }}
-                className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium"
+                disabled={analyzing}
+                className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium disabled:opacity-50"
               >
-                🔍 Analizza con AI
+                {analyzing ? 'Analizzando...' : '🔍 Analizza con AI'}
               </button>
             )}
             <button
@@ -299,6 +341,18 @@ export default function ObjectDetailPage() {
           )}
         </div>
       </div>
+
+      <ErrorModal
+        isOpen={errorModal.isOpen}
+        onClose={() => {
+          setErrorModal({ isOpen: false, title: '', message: '' });
+          if (!analyzing) {
+            fetchObject(); // Ricarica l'oggetto dopo la chiusura del modale
+          }
+        }}
+        title={errorModal.title}
+        message={errorModal.message}
+      />
     </DashboardLayout>
   );
 }
