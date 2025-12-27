@@ -2,6 +2,24 @@
 
 ## Priorità Alta
 
+### Compatibilità Mobile
+- [x] Migliorare l'esperienza utente su dispositivi mobili ✅ **IMPLEMENTATO**
+  - Supporto fotocamera: ✅ **COMPLETATO**
+    - ✅ Aggiunto `capture="environment"` agli input file per accesso diretto alla fotocamera posteriore
+    - ✅ Funziona su iOS e Android quando si caricano immagini
+  - Leggibilità form su mobile: ✅ **COMPLETATO**
+    - ✅ Risolto problema leggibilità password su mobile (iOS Safari e Chrome Android)
+    - ✅ Aggiunto CSS con `-webkit-text-fill-color` per forzare colore testo su mobile
+    - ✅ Aggiunto `font-size: 16px` per prevenire zoom automatico su iOS
+    - ✅ Migliorato supporto autofill con stili specifici per `-webkit-autofill`
+    - ✅ Aggiunto `text-gray-900 bg-white` a tutti gli input, textarea e select
+  - Login tramite IP da mobile: ✅ **COMPLETATO**
+    - ✅ Implementato rilevamento dinamico URL dalla richiesta per supportare accesso tramite IP
+    - ✅ Configurazione cookie ottimizzata per funzionare con IP su HTTP (senza sameSite su HTTP)
+    - ✅ Risolto problema redirect dopo login usando `window.location.href` invece di `router.push`
+    - ✅ Testato e funzionante su Chrome Android
+  - Note: L'applicazione è ora completamente utilizzabile su dispositivi mobili, sia con localhost che con IP di rete. La fotocamera è accessibile direttamente quando si caricano immagini. Tutti i form sono leggibili e funzionanti su mobile.
+
 ### Distribuzione Docker e HTTPS
 - [x] Implementare distribuzione dell'applicazione tramite immagine Docker con supporto HTTPS ✅ **IMPLEMENTATO**
   - Requisiti fondamentali:
