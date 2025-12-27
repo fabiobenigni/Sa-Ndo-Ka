@@ -23,14 +23,14 @@ export default function LoginPage() {
         email,
         password,
         redirect: false,
-        callbackUrl: `${window.location.origin}/dashboard`,
+        callbackUrl: `${window.location.origin}/`,
       });
 
       if (result?.error) {
         setError('Email o password non corretti');
       } else if (result?.ok) {
         // Usa window.location invece di router.push per forzare il reload completo
-        window.location.href = '/dashboard';
+        window.location.href = '/';
       } else {
         setError('Si è verificato un errore durante il login. Riprova.');
       }

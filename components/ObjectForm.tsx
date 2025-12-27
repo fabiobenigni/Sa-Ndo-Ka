@@ -332,21 +332,21 @@ export default function ObjectForm({ objectTypes, containerId, onSuccess, onCanc
         <label htmlFor="object-photo" className="block text-sm font-medium text-gray-700 mb-2">
           Foto (opzionale)
         </label>
-        <div className="flex items-center space-x-4">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-4">
           <input
             id="object-photo"
             type="file"
             accept="image/*"
             capture="environment"
             onChange={handlePhotoChange}
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 text-gray-900 bg-white min-w-0"
           />
           {formData.photo && (
             <button
               type="button"
               onClick={handleAnalyzeAI}
               disabled={analyzing || !formData.objectTypeId}
-              className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 text-sm font-medium"
+              className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 text-sm font-medium whitespace-nowrap flex-shrink-0"
             >
               {analyzing ? 'Analizzando...' : '🔍 Analizza con AI'}
             </button>

@@ -174,6 +174,7 @@ export async function GET(request: Request) {
           id: obj.id,
           name: obj.name,
           description: obj.description,
+          photoUrl: obj.photoUrl,
           objectType: {
             id: obj.objectType.id,
             name: obj.objectType.name,

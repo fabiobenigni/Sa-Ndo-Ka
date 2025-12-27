@@ -2,8 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
 
 export async function middleware(request: NextRequest) {
-  // Proteggi route dashboard
-  if (request.nextUrl.pathname.startsWith('/dashboard')) {
+  const pathname = request.nextUrl.pathname;
+  
+  // Proteggi la root e le route dashboard
+  if (pathname === '/' || pathname.startsWith('/dashboard')) {
     const token = await getToken({
       req: request,
       secret: process.env.NEXTAUTH_SECRET,

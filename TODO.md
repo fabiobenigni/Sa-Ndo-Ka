@@ -105,7 +105,33 @@
     - ✅ Ricerca con partizionamento per utente (solo oggetti accessibili)
     - ✅ Supporto per collezioni condivise
     - ✅ UI con SearchBar nel layout e pagina dedicata /dashboard/search
-  - Note: Il motore di ricerca è completamente funzionante. Cerca in tutti i campi richiesti e mostra risultati con contesto completo (collezione, contenitore, campo di match).
+    - ✅ Barra di ricerca separata sotto il titolo, sempre visibile
+    - ✅ Submit con Invio per navigare alla SERP (Search Engine Result Page)
+    - ✅ Popup autocomplete con immagini degli oggetti
+    - ✅ Z-index corretto per popup sopra altri elementi
+  - Note: Il motore di ricerca è completamente funzionante. Cerca in tutti i campi richiesti e mostra risultati con contesto completo (collezione, contenitore, campo di match). La UI è ottimizzata per desktop e mobile.
+
+### Spostamento Oggetti tra Contenitori
+- [x] Implementare funzionalità per spostare oggetti tra contenitori ✅ **IMPLEMENTATO**
+  - Funzionalità richiesta:
+    - Selezionare uno o più oggetti da un contenitore
+    - Spostarli in un altro contenitore (stessa o altra collezione)
+    - Funzionare facilmente sia da PC che da mobile
+  - Implementazione tecnica: ✅ **COMPLETATO**
+    - ✅ Creato API endpoint `/api/objects/move` per gestire lo spostamento
+    - ✅ Verifica permessi su contenitore sorgente e destinazione (richiede permesso 'full')
+    - ✅ Gestione transazionale dello spostamento (elimina da sorgente, aggiunge a destinazione)
+    - ✅ Gestione duplicati con `upsert` per evitare errori
+  - UI/UX: ✅ **COMPLETATO**
+    - ✅ Modalità selezione multipla in ContainerView con pulsante "✓ Seleziona"
+    - ✅ Checkbox su ogni oggetto quando la modalità è attiva
+    - ✅ Funzionalità "Seleziona tutti" / "Deseleziona tutti"
+    - ✅ Contatore oggetti selezionati nel pulsante "📦 Sposta"
+    - ✅ Modale MoveObjectsModal per selezione contenitore destinazione
+    - ✅ Lista organizzata per collezioni con contenitori disponibili
+    - ✅ Esclusione automatica del contenitore sorgente dalla lista
+    - ✅ Design responsive ottimizzato per mobile
+  - Note: La funzionalità è completamente implementata e funzionante. Permette di spostare facilmente oggetti tra contenitori della stessa o di diverse collezioni, con un'interfaccia intuitiva sia su desktop che mobile.
 
 ### Sistema di Collegamento Utenti Invitati
 - [ ] Implementare sistema per collegare utenti invitati quando si registrano
@@ -176,6 +202,17 @@
 ## Priorità Bassa
 
 ### UI/UX
+- [x] Overhaul completo UI/UX ✅ **IMPLEMENTATO**
+  - ✅ Riorganizzata barra del titolo con burger menu per mobile
+  - ✅ Creata pagina separata per profilo utente (/dashboard/profile)
+  - ✅ Rimossa visualizzazione nome utente dalla barra del titolo
+  - ✅ Aggiunta icona user nella barra del titolo per accesso profilo
+  - ✅ Rimossa pagina Home Page separata, Dashboard è ora la Home Page
+  - ✅ Rinominata Dashboard in "Home Page" con testo esplicativo
+  - ✅ Risolto problema overflow orizzontale su mobile
+  - ✅ Barra tab impostazioni scrollabile orizzontalmente su mobile
+  - ✅ Ottimizzato layout cestino per mobile
+  - ✅ Risolto problema z-index popup ricerca
 - [x] Aggiungere conferma modale per eliminazione di contenitori e oggetti ⚠️ **PARZIALMENTE IMPLEMENTATO**
   - ✅ Implementato DeleteConfirmModal per le collezioni
   - ⚠️ Da estendere: DeleteConfirmModal per contenitori e oggetti

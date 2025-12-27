@@ -8,6 +8,7 @@ interface SearchResult {
   id: string;
   name: string;
   description: string | null;
+  photoUrl: string | null;
   objectType: {
     id: string;
     name: string;
@@ -41,8 +42,9 @@ export default function SearchBar() {
   const [showResults, setShowResults] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
-  const searchRef = useRef<HTMLDivElement>(null);
+  const searchRef = useRef<HTMLFormElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const [dropdownPosition, setDropdownPosition] = useState<{ top: number; left: number; width: number } | null>(null);
 
   // Chiudi i risultati quando si clicca fuori
   useEffect(() => {
@@ -72,6 +74,21 @@ export default function SearchBar() {
       document.removeEventListener('keydown', handleEscape);
     };
   }, []);
+
+  // Aggiorna la posizione del dropdown durante scroll e resize
+  useEffect(() => {
+    if (showResults) {
+      const handleUpdate = () => {
+        updateDropdownPosition();
+      };
+      window.addEventListener('scroll', handleUpdate, true);
+      window.addEventListener('resize', handleUpdate);
+      return () => {
+        window.removeEventListener('scroll', handleUpdate, true);
+        window.removeEventListener('resize', handleUpdate);
+      };
+    }
+  }, [showResults]);
 
   const handleSearch = async (searchQuery: string) => {
     if (searchQuery.length < 2) {
@@ -105,10 +122,37 @@ export default function SearchBar() {
     }
   };
 
+  const updateDropdownPosition = () => {
+    if (inputRef.current) {
+      const rect = inputRef.current.getBoundingClientRect();
+      // Sovrapponiamo il dropdown di 2px per eliminare completamente lo spazio
+      setDropdownPosition({
+        top: rect.bottom - 2, // Sovrapposizione di 2px per eliminare lo spazio
+        left: rect.left,
+        width: rect.width,
+      });
+    }
+  };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setQuery(value);
-    handleSearch(value);
+    // Ricerca in tempo reale solo se ci sono almeno 2 caratteri
+    if (value.length >= 2) {
+      handleSearch(value);
+      updateDropdownPosition();
+    } else {
+      setResults([]);
+      setShowResults(false);
+    }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (query.trim().length >= 2) {
+      setShowResults(false);
+      router.push(`/dashboard/search?q=${encodeURIComponent(query.trim())}`);
+    }
   };
 
   const handleResultClick = (objectId: string) => {
@@ -120,7 +164,7 @@ export default function SearchBar() {
   const handleViewAllResults = () => {
     if (query.trim().length >= 2) {
       setShowResults(false);
-      router.push(`/dashboard/search?q=${encodeURIComponent(query)}`);
+      router.push(`/dashboard/search?q=${encodeURIComponent(query.trim())}`);
     }
   };
 
@@ -140,7 +184,7 @@ export default function SearchBar() {
   };
 
   return (
-    <div ref={searchRef} className="relative w-full max-w-md mx-auto md:mx-4">
+    <form onSubmit={handleSubmit} ref={searchRef} className="relative w-full max-w-2xl mx-auto z-50">
       <div className="relative">
         <input
           ref={inputRef}
@@ -148,12 +192,13 @@ export default function SearchBar() {
           value={query}
           onChange={handleInputChange}
           onFocus={() => {
+            updateDropdownPosition();
             if (results.length > 0) {
               setShowResults(true);
             }
           }}
           placeholder="Cerca oggetti..."
-          className="w-full px-4 py-2.5 pl-10 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm md:text-base"
+          className="w-full px-4 py-2.5 pl-10 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm md:text-base text-gray-900 bg-white"
         />
         <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
           🔍
@@ -165,21 +210,62 @@ export default function SearchBar() {
         )}
       </div>
 
-      {error && (
-        <div className="absolute top-full left-0 right-0 mt-1 p-2 bg-red-50 border border-red-200 rounded-lg text-red-700 text-xs z-50">
+      {error && dropdownPosition && (
+        <div 
+          className="fixed bg-red-50 border border-red-200 rounded-lg text-red-700 text-xs z-[9999] p-2"
+          style={{
+            top: `${dropdownPosition.top}px`,
+            left: `${dropdownPosition.left}px`,
+            width: `${dropdownPosition.width}px`,
+          }}
+        >
           {error}
         </div>
       )}
 
-      {showResults && results.length > 0 && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-xl max-h-[70vh] md:max-h-96 overflow-y-auto z-50">
+      {showResults && results.length > 0 && dropdownPosition && (
+        <div 
+          className="fixed bg-white border-t-0 border-l border-r border-b border-gray-200 rounded-b-lg shadow-xl max-h-[70vh] md:max-h-96 overflow-y-auto z-[9999]"
+          style={{
+            top: `${dropdownPosition.top}px`,
+            left: `${dropdownPosition.left}px`,
+            width: `${dropdownPosition.width}px`,
+            marginTop: '-2px', // Sovrapponiamo di 2px per eliminare completamente lo spazio
+            borderTopLeftRadius: '0',
+            borderTopRightRadius: '0',
+          }}
+        >
           {results.slice(0, 5).map((result) => (
             <div
               key={result.id}
               onClick={() => handleResultClick(result.id)}
               className="p-3 md:p-4 hover:bg-primary-50 active:bg-primary-100 cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors touch-manipulation"
             >
-              <div className="flex items-start justify-between gap-2">
+              <div className="flex items-start gap-3">
+                {/* Immagine */}
+                {result.photoUrl ? (
+                  <div className="flex-shrink-0">
+                    <img
+                      src={result.photoUrl.startsWith('/api/uploads/') 
+                        ? result.photoUrl 
+                        : result.photoUrl.startsWith('/uploads/')
+                        ? `/api${result.photoUrl}`
+                        : `/api/uploads${result.photoUrl}`
+                      }
+                      alt={result.name}
+                      className="w-12 h-12 md:w-16 md:h-16 object-cover rounded"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <div className="flex-shrink-0 w-12 h-12 md:w-16 md:h-16 bg-gray-200 rounded flex items-center justify-center">
+                    <span className="text-gray-400 text-xs">📷</span>
+                  </div>
+                )}
+                {/* Contenuto testuale */}
                 <div className="flex-1 min-w-0">
                   <div className="font-semibold text-primary-800 text-sm md:text-base truncate">
                     {result.name}
@@ -213,12 +299,19 @@ export default function SearchBar() {
         </div>
       )}
 
-      {showResults && query.length >= 2 && !loading && results.length === 0 && (
-        <div className="absolute top-full left-0 right-0 mt-1 p-4 bg-white border border-gray-200 rounded-lg shadow-xl z-50 text-center text-gray-500 text-sm">
+      {showResults && query.length >= 2 && !loading && results.length === 0 && dropdownPosition && (
+        <div 
+          className="fixed bg-white border border-gray-200 rounded-lg shadow-xl z-[9999] text-center text-gray-500 text-sm p-4"
+          style={{
+            top: `${dropdownPosition.top}px`,
+            left: `${dropdownPosition.left}px`,
+            width: `${dropdownPosition.width}px`,
+          }}
+        >
           Nessun risultato trovato per &quot;{query}&quot;
         </div>
       )}
-    </div>
+    </form>
   );
 }
 

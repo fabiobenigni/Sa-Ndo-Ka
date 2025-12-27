@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/DashboardLayout';
 import ObjectForm from '@/components/ObjectForm';
+import MoveObjectsModal from '@/components/MoveObjectsModal';
 import Link from 'next/link';
 
 interface ContainerViewProps {
@@ -16,6 +17,10 @@ export default function ContainerView({ container }: ContainerViewProps) {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [objects, setObjects] = useState(container.items || []);
   const [loading, setLoading] = useState(true);
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedObjectIds, setSelectedObjectIds] = useState<Set<string>>(new Set());
+  const [showMoveModal, setShowMoveModal] = useState(false);
+  const [moving, setMoving] = useState(false);
 
   useEffect(() => {
     fetchObjectTypes();
@@ -48,8 +53,59 @@ export default function ContainerView({ container }: ContainerViewProps) {
     window.open(`/api/containers/${container.id}/qr`, '_blank');
   };
 
+  const toggleSelection = (objectId: string) => {
+    const newSelection = new Set(selectedObjectIds);
+    if (newSelection.has(objectId)) {
+      newSelection.delete(objectId);
+    } else {
+      newSelection.add(objectId);
+    }
+    setSelectedObjectIds(newSelection);
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedObjectIds.size === objects.length) {
+      setSelectedObjectIds(new Set());
+    } else {
+      setSelectedObjectIds(new Set(objects.map((item: any) => item.object.id)));
+    }
+  };
+
+  const handleMove = async (targetContainerId: string) => {
+    if (selectedObjectIds.size === 0) return;
+
+    setMoving(true);
+    try {
+      const response = await fetch('/api/objects/move', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          objectIds: Array.from(selectedObjectIds),
+          sourceContainerId: container.id,
+          targetContainerId,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setSelectionMode(false);
+        setSelectedObjectIds(new Set());
+        setShowMoveModal(false);
+        await fetchObjects();
+      } else {
+        alert(data.error || 'Errore nello spostamento degli oggetti');
+      }
+    } catch (error) {
+      console.error('Error moving objects:', error);
+      alert('Errore nello spostamento degli oggetti');
+    } finally {
+      setMoving(false);
+    }
+  };
+
   const breadcrumbs = [
-    { label: 'Dashboard', href: '/dashboard' },
+    { label: 'Home Page', href: '/' },
     { label: container.collection?.name || 'Collezione', href: `/dashboard/collections/${container.collectionId}` },
     { label: container.name },
   ];
@@ -66,27 +122,59 @@ export default function ContainerView({ container }: ContainerViewProps) {
             <p className="text-gray-600">{container.description}</p>
           )}
         </div>
-        <div className="flex space-x-3">
-          <button
-            onClick={handleDownloadQR}
-            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium text-sm"
-          >
-            📄 Scarica QR PDF
-          </button>
-          {objectTypes.length === 0 ? (
-            <Link
-              href="/dashboard/settings"
-              className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 font-medium text-sm"
-            >
-              ⚙️ Crea Tipo Oggetto
-            </Link>
+        <div className="flex flex-wrap gap-2">
+          {selectionMode ? (
+            <>
+              <button
+                onClick={() => {
+                  setSelectionMode(false);
+                  setSelectedObjectIds(new Set());
+                }}
+                className="px-3 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 font-medium text-sm"
+              >
+                Annulla
+              </button>
+              {selectedObjectIds.size > 0 && (
+                <button
+                  onClick={() => setShowMoveModal(true)}
+                  className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium text-sm"
+                >
+                  📦 Sposta ({selectedObjectIds.size})
+                </button>
+              )}
+            </>
           ) : (
-            <button
-              onClick={() => setShowCreateForm(true)}
-              className="px-4 py-2 bg-gradient-to-r from-primary-600 to-primary-500 text-white rounded-lg hover:from-primary-700 hover:to-primary-600 font-medium text-sm"
-            >
-              + Aggiungi Oggetto
-            </button>
+            <>
+              <button
+                onClick={handleDownloadQR}
+                className="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium text-sm"
+              >
+                📄 QR PDF
+              </button>
+              {objects.length > 0 && (
+                <button
+                  onClick={() => setSelectionMode(true)}
+                  className="px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium text-sm"
+                >
+                  ✓ Seleziona
+                </button>
+              )}
+              {objectTypes.length === 0 ? (
+                <Link
+                  href="/dashboard/settings"
+                  className="px-3 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 font-medium text-sm"
+                >
+                  ⚙️ Tipo Oggetto
+                </Link>
+              ) : (
+                <button
+                  onClick={() => setShowCreateForm(true)}
+                  className="px-3 py-2 bg-gradient-to-r from-primary-600 to-primary-500 text-white rounded-lg hover:from-primary-700 hover:to-primary-600 font-medium text-sm"
+                >
+                  + Aggiungi
+                </button>
+              )}
+            </>
           )}
         </div>
       </div>
@@ -110,8 +198,18 @@ export default function ContainerView({ container }: ContainerViewProps) {
       )}
 
       {/* Lista oggetti */}
-      <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-primary-200 p-6">
-        <h2 className="text-xl font-semibold mb-4 text-primary-800">Oggetti nel contenitore</h2>
+      <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-primary-200 p-4 md:p-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
+          <h2 className="text-xl font-semibold text-primary-800">Oggetti nel contenitore</h2>
+          {selectionMode && objects.length > 0 && (
+            <button
+              onClick={toggleSelectAll}
+              className="text-sm text-primary-600 hover:text-primary-700 font-medium"
+            >
+              {selectedObjectIds.size === objects.length ? 'Deseleziona tutti' : 'Seleziona tutti'}
+            </button>
+          )}
+        </div>
         {loading ? (
           <p className="text-gray-600">Caricamento...</p>
         ) : objects.length === 0 ? (
@@ -128,12 +226,36 @@ export default function ContainerView({ container }: ContainerViewProps) {
           </div>
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {objects.map((item: any) => (
-              <Link
-                key={item.id}
-                href={`/dashboard/objects/${item.object.id}`}
-                className="border border-primary-200 rounded-lg p-4 bg-white/50 hover:shadow-lg transition-shadow"
-              >
+            {objects.map((item: any) => {
+              const isSelected = selectedObjectIds.has(item.object.id);
+              const Component = selectionMode ? 'div' : Link;
+              const props = selectionMode
+                ? {
+                    onClick: () => toggleSelection(item.object.id),
+                    className: `border-2 rounded-lg p-4 bg-white/50 cursor-pointer transition-all ${
+                      isSelected
+                        ? 'border-primary-600 bg-primary-50 shadow-md'
+                        : 'border-primary-200 hover:shadow-lg'
+                    }`,
+                  }
+                : {
+                    href: `/dashboard/objects/${item.object.id}`,
+                    className: 'border border-primary-200 rounded-lg p-4 bg-white/50 hover:shadow-lg transition-shadow',
+                  };
+
+              return (
+                <Component key={item.id} {...props}>
+                  {selectionMode && (
+                    <div className="mb-2 flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => toggleSelection(item.object.id)}
+                        onClick={(e) => e.stopPropagation()}
+                        className="w-5 h-5 text-primary-600 rounded focus:ring-primary-500"
+                      />
+                    </div>
+                  )}
                 {item.object.photoUrl ? (
                   <img
                     src={item.object.photoUrl.startsWith('/api/uploads/') 
@@ -174,11 +296,21 @@ export default function ContainerView({ container }: ContainerViewProps) {
                     )}
                   </div>
                 )}
-              </Link>
-            ))}
+                </Component>
+              );
+            })}
           </div>
         )}
       </div>
+
+      <MoveObjectsModal
+        isOpen={showMoveModal}
+        onClose={() => setShowMoveModal(false)}
+        onConfirm={handleMove}
+        sourceContainerId={container.id}
+        selectedCount={selectedObjectIds.size}
+        loading={moving}
+      />
     </DashboardLayout>
   );
 }

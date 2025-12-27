@@ -4,12 +4,12 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import DashboardLayout from '@/components/DashboardLayout';
-import SearchBar from '@/components/SearchBar';
 
 interface SearchResult {
   id: string;
   name: string;
   description: string | null;
+  photoUrl: string | null;
   objectType: {
     id: string;
     name: string;
@@ -92,16 +92,11 @@ export default function SearchPage() {
   };
 
   return (
-    <DashboardLayout title="Risultati di Ricerca">
+    <DashboardLayout breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Ricerca' }]}>
       <div className="mb-4 md:mb-6">
         <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3 md:mb-4">
           Risultati di Ricerca
         </h2>
-        
-        {/* Barra di ricerca mobile e desktop nella pagina */}
-        <div className="mb-4">
-          <SearchBar />
-        </div>
 
         {query && (
           <p className="text-sm md:text-base text-gray-600">
@@ -154,6 +149,25 @@ export default function SearchPage() {
               className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-primary-200 p-4 md:p-6 hover:shadow-xl hover:border-primary-300 transition-all"
             >
               <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 md:gap-4">
+                {/* Immagine */}
+                {result.photoUrl && (
+                  <div className="flex-shrink-0">
+                    <img
+                      src={result.photoUrl.startsWith('/api/uploads/') 
+                        ? result.photoUrl 
+                        : result.photoUrl.startsWith('/uploads/')
+                        ? `/api${result.photoUrl}`
+                        : `/api/uploads${result.photoUrl}`
+                      }
+                      alt={result.name}
+                      className="w-full md:w-32 h-32 object-cover rounded-lg"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                      }}
+                    />
+                  </div>
+                )}
                 <div className="flex-1 min-w-0">
                   <Link
                     href={`/dashboard/objects/${result.id}`}
