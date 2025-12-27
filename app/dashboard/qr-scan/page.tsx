@@ -34,6 +34,33 @@ export default function QRScanPage() {
       setError(null);
       setScanning(true);
 
+      // Verifica se la fotocamera è disponibile
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        setError('La fotocamera non è disponibile su questo dispositivo o browser.');
+        setScanning(false);
+        return;
+      }
+
+      // Richiedi permessi esplicitamente prima di avviare la scansione
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+          video: { facingMode: 'environment' } 
+        });
+        // Chiudi lo stream temporaneo, Html5Qrcode lo gestirà
+        stream.getTracks().forEach(track => track.stop());
+      } catch (permissionError: any) {
+        console.error('Permission error:', permissionError);
+        if (permissionError.name === 'NotAllowedError' || permissionError.name === 'PermissionDeniedError') {
+          setError('Permessi fotocamera negati. Abilita i permessi nelle impostazioni del browser e riprova.');
+        } else if (permissionError.name === 'NotFoundError' || permissionError.name === 'DevicesNotFoundError') {
+          setError('Nessuna fotocamera trovata sul dispositivo.');
+        } else {
+          setError(`Errore accesso fotocamera: ${permissionError.message || 'Errore sconosciuto'}`);
+        }
+        setScanning(false);
+        return;
+      }
+
       const qrCode = new Html5Qrcode('qr-reader');
       
       await qrCode.start(
@@ -42,20 +69,32 @@ export default function QRScanPage() {
           fps: 10,
           qrbox: { width: 250, height: 250 },
           aspectRatio: 1.0,
+          videoConstraints: {
+            facingMode: 'environment',
+          },
         },
         (decodedText) => {
           // QR code scansionato con successo
           handleQRCodeScanned(decodedText);
         },
         (errorMessage) => {
-          // Ignora errori di scansione continua
+          // Ignora errori di scansione continua (non critici)
+          // Questi sono errori durante la scansione, non errori di accesso
         }
       );
 
       setHtml5QrCode(qrCode);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error starting QR scanner:', err);
-      setError('Impossibile accedere alla fotocamera. Verifica i permessi.');
+      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+        setError('Permessi fotocamera negati. Abilita i permessi nelle impostazioni del browser e riprova.');
+      } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+        setError('Nessuna fotocamera trovata sul dispositivo.');
+      } else if (err.message?.includes('HTTPS')) {
+        setError('L\'accesso alla fotocamera richiede HTTPS. Assicurati di accedere all\'app tramite HTTPS.');
+      } else {
+        setError(`Impossibile accedere alla fotocamera: ${err.message || 'Errore sconosciuto'}. Verifica i permessi nelle impostazioni del browser.`);
+      }
       setScanning(false);
     }
   };
