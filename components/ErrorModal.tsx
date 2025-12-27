@@ -14,20 +14,59 @@ export default function ErrorModal({ isOpen, onClose, title, message }: ErrorMod
   console.log('ErrorModal renderizzato:', { isOpen, title, message: message.substring(0, 100) });
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(message).then(() => {
-      alert('Messaggio copiato negli appunti!');
-    }).catch(() => {
-      // Fallback per browser che non supportano clipboard API
+    // Verifica se navigator.clipboard è disponibile (richiede HTTPS o localhost)
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(message).then(() => {
+        alert('Messaggio copiato negli appunti!');
+      }).catch((err) => {
+        console.error('Errore clipboard API:', err);
+        // Fallback per browser che non supportano clipboard API o contesti non sicuri
+        fallbackCopy();
+      });
+    } else {
+      // Fallback immediato se clipboard API non disponibile
+      fallbackCopy();
+    }
+  };
+
+  const fallbackCopy = () => {
+    try {
       const textarea = document.createElement('textarea');
       textarea.value = message;
       textarea.style.position = 'fixed';
+      textarea.style.top = '0';
+      textarea.style.left = '0';
       textarea.style.opacity = '0';
+      textarea.style.pointerEvents = 'none';
+      textarea.setAttribute('readonly', '');
       document.body.appendChild(textarea);
-      textarea.select();
-      document.execCommand('copy');
+      
+      // Seleziona il testo
+      if (navigator.userAgent.match(/ipad|iphone/i)) {
+        // iOS richiede un range di selezione
+        const range = document.createRange();
+        range.selectNodeContents(textarea);
+        const selection = window.getSelection();
+        selection?.removeAllRanges();
+        selection?.addRange(range);
+        textarea.setSelectionRange(0, 999999);
+      } else {
+        textarea.select();
+        textarea.setSelectionRange(0, 999999);
+      }
+      
+      const successful = document.execCommand('copy');
       document.body.removeChild(textarea);
-      alert('Messaggio copiato negli appunti!');
-    });
+      
+      if (successful) {
+        alert('Messaggio copiato negli appunti!');
+      } else {
+        alert('Impossibile copiare. Seleziona manualmente il testo e premi Ctrl+C (o Cmd+C su Mac).');
+      }
+    } catch (err) {
+      console.error('Errore nel fallback copy:', err);
+      alert('Impossibile copiare automaticamente. Seleziona manualmente il testo e premi Ctrl+C (o Cmd+C su Mac).');
+    }
   };
 
   return (
