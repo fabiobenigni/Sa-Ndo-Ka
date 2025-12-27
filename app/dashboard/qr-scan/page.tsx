@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Html5Qrcode } from 'html5-qrcode';
 import DashboardLayout from '@/components/DashboardLayout';
@@ -10,6 +10,8 @@ export default function QRScanPage() {
   const [scanning, setScanning] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [html5QrCode, setHtml5QrCode] = useState<Html5Qrcode | null>(null);
+  const [scanMode, setScanMode] = useState<'camera' | 'file'>('file'); // Default a file per compatibilità
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     // Verifica se siamo su mobile
