@@ -201,19 +201,22 @@ export default function ContainerView({ container }: ContainerViewProps) {
                               updateFormData.append('objectTypeId', obj.object.objectTypeId);
                               
                               // Assicurati che properties sia sempre un oggetto valido
-                              let propertiesToSave = {};
+                              let propertiesToSave: Record<string, any> = {};
                               if (result.analysis && result.analysis.properties) {
-                                if (typeof result.analysis.properties === 'object' && !Array.isArray(result.analysis.properties)) {
+                                if (typeof result.analysis.properties === 'object' && !Array.isArray(result.analysis.properties) && result.analysis.properties !== null) {
                                   propertiesToSave = result.analysis.properties;
                                 }
                               }
-                              updateFormData.append('properties', JSON.stringify(propertiesToSave));
-
+                              
+                              const propertiesJson = JSON.stringify(propertiesToSave);
                               console.log(`Aggiornamento oggetto ${result.objectId}:`, {
                                 name: result.objectName,
                                 description: result.analysis.description?.substring(0, 50) + '...',
-                                propertiesCount: Object.keys(result.analysis.properties || {}).length
+                                propertiesCount: Object.keys(propertiesToSave).length,
+                                propertiesJson: propertiesJson.substring(0, 100)
                               });
+                              
+                              updateFormData.append('properties', propertiesJson);
 
                               const updateResponse = await fetch(`/api/objects/${result.objectId}`, {
                                 method: 'PUT',
