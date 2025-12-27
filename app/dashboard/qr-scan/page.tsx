@@ -178,11 +178,22 @@ export default function QRScanPage() {
           )}
 
           <div className="space-y-4">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <p className="text-sm text-blue-800 mb-2">
+                <strong>Nota importante:</strong>
+              </p>
+              <ul className="text-sm text-blue-700 space-y-1 list-disc list-inside">
+                <li>L&apos;accesso alla fotocamera richiede HTTPS (non funziona su HTTP)</li>
+                <li>Devi concedere i permessi quando richiesto dal browser</li>
+                <li>Se i permessi sono stati negati, vai nelle impostazioni del browser per abilitarli</li>
+              </ul>
+            </div>
+
             <p className="text-gray-700">
               Posiziona il QR code del contenitore all&apos;interno del riquadro per scansionarlo.
             </p>
 
-            <div id="qr-reader" className="w-full max-w-md mx-auto rounded-lg overflow-hidden border-2 border-primary-300"></div>
+            <div id="qr-reader" className="w-full max-w-md mx-auto rounded-lg overflow-hidden border-2 border-primary-300 bg-black"></div>
 
             {!scanning ? (
               <div className="flex justify-center">
