@@ -101,21 +101,41 @@ export async function PUT(
       photoUrl = `/uploads/${filename}`;
     }
 
-    const properties = propertiesJson ? JSON.parse(propertiesJson) : {};
+    let properties: Record<string, any> = {};
+    try {
+      if (propertiesJson) {
+        properties = JSON.parse(propertiesJson);
+        if (typeof properties !== 'object' || Array.isArray(properties)) {
+          properties = {};
+        }
+      }
+    } catch (error) {
+      console.error('Error parsing properties JSON:', error);
+      properties = {};
+    }
 
     // Prepara i dati per l'aggiornamento
     const updateData: any = {
       name,
       description: description || null,
-      // Aggiorna proprietà: elimina vecchie e crea nuove
-      properties: {
+    };
+
+    // Aggiorna proprietà solo se ci sono proprietà da gestire
+    const propertyEntries = Object.entries(properties).filter(([_, value]) => value !== null && value !== undefined && value !== '');
+    if (propertyEntries.length > 0) {
+      updateData.properties = {
         deleteMany: {},
-        create: Object.entries(properties).map(([propertyId, value]) => ({
+        create: propertyEntries.map(([propertyId, value]) => ({
           propertyId,
           value: String(value),
         })),
-      },
-    };
+      };
+    } else {
+      // Se non ci sono proprietà, elimina solo quelle esistenti
+      updateData.properties = {
+        deleteMany: {},
+      };
+    }
 
     // Aggiungi objectTypeId solo se fornito
     if (objectTypeId) {
@@ -144,8 +164,19 @@ export async function PUT(
     return NextResponse.json(updated);
   } catch (error) {
     console.error('Error updating object:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Errore sconosciuto';
+    const errorStack = error instanceof Error ? error.stack : undefined;
+    console.error('Error details:', {
+      objectId: params.id,
+      errorMessage,
+      errorStack,
+      updateData: JSON.stringify(updateData, null, 2),
+    });
     return NextResponse.json(
-      { error: 'Errore nell\'aggiornamento dell\'oggetto' },
+      { 
+        error: 'Errore nell\'aggiornamento dell\'oggetto',
+        details: errorMessage,
+      },
       { status: 500 }
     );
   }
