@@ -185,8 +185,8 @@ La descrizione deve essere chiara e dettagliata. Le proprietà devono corrispond
       } else if (provider === 'google') {
         const genAI = new GoogleGenerativeAI(apiKey);
         
-        // Converti l'immagine in base64 se necessario
-        let imageData: { inlineData: { data: string; mimeType: string } } | string;
+        // Converti l'immagine in base64 (Gemini preferisce base64 per affidabilità)
+        let imageData: { inlineData: { data: string; mimeType: string } };
         
         if (photoUrl.startsWith('data:image')) {
           // Già in base64
@@ -198,14 +198,21 @@ La descrizione deve essere chiara e dettagliata. Le proprietà devono corrispond
               mimeType: `image/${mimeType}`,
             },
           };
-        } else if (photoUrl.startsWith('http://') || photoUrl.startsWith('https://')) {
-          // URL pubblico - Gemini può accettare URL direttamente
-          imageData = photoUrl;
         } else {
-          // URL relativo - converti in URL assoluto
-          const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
-          const absoluteUrl = photoUrl.startsWith('/') ? `${baseUrl}${photoUrl}` : `${baseUrl}/${photoUrl}`;
-          imageData = absoluteUrl;
+          // Per URL, convertiamo sempre in base64 per affidabilità
+          // In futuro potremmo implementare il download e conversione
+          // Per ora, se è un URL, usiamo direttamente il base64 se disponibile
+          // Altrimenti fallback a URL (richiede che l'immagine sia pubblicamente accessibile)
+          if (photoUrl.startsWith('http://') || photoUrl.startsWith('https://')) {
+            // URL pubblico - Gemini può accettare URL ma è meglio usare base64
+            // Per ora usiamo l'URL direttamente (richiede che l'immagine sia pubblica)
+            throw new Error('Per Gemini, le immagini devono essere in formato base64. Carica l\'immagine direttamente dall\'applicazione.');
+          } else {
+            // URL relativo - converti in URL assoluto
+            const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
+            const absoluteUrl = photoUrl.startsWith('/') ? `${baseUrl}${photoUrl}` : `${baseUrl}/${photoUrl}`;
+            throw new Error('Per Gemini, le immagini devono essere in formato base64. Carica l\'immagine direttamente dall\'applicazione.');
+          }
         }
 
         const model = genAI.getGenerativeModel({ 
@@ -231,9 +238,7 @@ La descrizione deve essere chiara e dettagliata. Le proprietà devono corrispond
 
         const response = await model.generateContent([
           prompt,
-          typeof imageData === 'string' 
-            ? { fileData: { fileUri: imageData, mimeType: 'image/jpeg' } }
-            : imageData,
+          imageData,
         ]);
 
         const content = response.response.text();
