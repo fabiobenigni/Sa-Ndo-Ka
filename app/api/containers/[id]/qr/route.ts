@@ -72,6 +72,7 @@ export async function GET(
     const url = `${baseUrl}/container/${container.id}`;
 
     // Genera QR code come data URL (con colori ma leggibile in B&N)
+    // Usiamo errorCorrectionLevel 'H' per avere più margine per inserire l'icona
     const qrCodeDataUrl = await QRCode.toDataURL(url, {
       width: 400,
       margin: 1,
@@ -79,16 +80,21 @@ export async function GET(
         dark: '#000000', // Nero per moduli scuri (garantisce leggibilità in B&N)
         light: '#FFFFFF', // Bianco per sfondo
       },
-      errorCorrectionLevel: 'M',
+      errorCorrectionLevel: 'H', // Alto livello di correzione errori per permettere icona centrale
     });
 
     // Carica icona se disponibile
     let iconData: string | null = null;
+    let iconWidth = 0;
+    let iconHeight = 0;
     try {
       const iconPath = path.join(process.cwd(), 'public', 'app-icon.jpg');
       if (fs.existsSync(iconPath)) {
         const iconBuffer = fs.readFileSync(iconPath);
         iconData = `data:image/jpeg;base64,${iconBuffer.toString('base64')}`;
+        // Dimensione icona nel QR code (circa 15% della dimensione del QR code)
+        iconWidth = 60; // pixel
+        iconHeight = 60; // pixel
       }
     } catch (error) {
       console.error('Error loading icon:', error);
@@ -209,6 +215,29 @@ export async function GET(
 
         // Aggiungi QR code al PDF
         pdf.addImage(qrImgData, 'PNG', qrX, qrY, qrSize, qrSize);
+
+        // Aggiungi icona al centro del QR code se disponibile
+        if (iconData) {
+          try {
+            // Dimensione icona nel QR code (circa 20% della dimensione del QR code)
+            const iconSizeInPdf = qrSize * 0.2; // 20% del QR code
+            const iconX = qrX + (qrSize - iconSizeInPdf) / 2;
+            const iconY = qrY + (qrSize - iconSizeInPdf) / 2;
+            
+            // Sfondo bianco per l'icona (per garantire leggibilità)
+            const iconBgSize = iconSizeInPdf * 1.1; // 10% più grande per il bordo
+            const iconBgX = qrX + (qrSize - iconBgSize) / 2;
+            const iconBgY = qrY + (qrSize - iconBgSize) / 2;
+            pdf.setFillColor(255, 255, 255);
+            pdf.rect(iconBgX, iconBgY, iconBgSize, iconBgSize, 'F');
+            
+            // Aggiungi icona
+            const iconImgData = iconData.split(',')[1];
+            pdf.addImage(iconImgData, 'JPEG', iconX, iconY, iconSizeInPdf, iconSizeInPdf);
+          } catch (error) {
+            console.error('Error adding icon to QR code:', error);
+          }
+        }
       }
     }
 
