@@ -337,6 +337,7 @@ export default function ObjectForm({ objectTypes, containerId, onSuccess, onCanc
             id="object-photo"
             type="file"
             accept="image/*"
+            capture="environment"
             onChange={handlePhotoChange}
             className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
           />
@@ -414,7 +415,7 @@ export default function ObjectForm({ objectTypes, containerId, onSuccess, onCanc
                     value={formData.properties[prop.id] || ''}
                     onChange={(e) => handlePropertyChange(prop.id, e.target.value)}
                     required={prop.required}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 text-gray-900 bg-white"
                   />
                 )}
                 {prop.type === 'number' && (
@@ -423,7 +424,7 @@ export default function ObjectForm({ objectTypes, containerId, onSuccess, onCanc
                     value={formData.properties[prop.id] || ''}
                     onChange={(e) => handlePropertyChange(prop.id, e.target.value)}
                     required={prop.required}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 text-gray-900 bg-white"
                   />
                 )}
                 {prop.type === 'select' && (
@@ -431,7 +432,7 @@ export default function ObjectForm({ objectTypes, containerId, onSuccess, onCanc
                     value={formData.properties[prop.id] || ''}
                     onChange={(e) => handlePropertyChange(prop.id, e.target.value)}
                     required={prop.required}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 text-gray-900 bg-white"
                   >
                     <option value="">Seleziona...</option>
                     {prop.lookupValues?.map((lv: any) => (
@@ -458,7 +459,7 @@ export default function ObjectForm({ objectTypes, containerId, onSuccess, onCanc
                     value={formData.properties[prop.id] || ''}
                     onChange={(e) => handlePropertyChange(prop.id, e.target.value)}
                     required={prop.required}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 text-gray-900 bg-white"
                   />
                 )}
                 {prop.type === 'year' && (
@@ -471,7 +472,7 @@ export default function ObjectForm({ objectTypes, containerId, onSuccess, onCanc
                     onChange={(e) => handlePropertyChange(prop.id, e.target.value)}
                     required={prop.required}
                     placeholder="Es: 2024"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 text-gray-900 bg-white"
                   />
                 )}
               </div>
@@ -519,7 +520,7 @@ export default function ObjectForm({ objectTypes, containerId, onSuccess, onCanc
                 value={newTypeData.name}
                 onChange={(e) => setNewTypeData({ ...newTypeData, name: e.target.value })}
                 required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 bg-white"
                 placeholder="Es: Maglietta, Libro, etc."
               />
             </div>
@@ -533,7 +534,7 @@ export default function ObjectForm({ objectTypes, containerId, onSuccess, onCanc
                 value={newTypeData.description}
                 onChange={(e) => setNewTypeData({ ...newTypeData, description: e.target.value })}
                 rows={3}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 bg-white"
                 placeholder="Descrizione opzionale del tipo di oggetto"
               />
             </div>

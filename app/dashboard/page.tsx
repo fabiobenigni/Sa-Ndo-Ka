@@ -271,14 +271,14 @@ function CollectionCard({ collection, onUpdate }: { collection: any; onUpdate: (
           type="text"
           value={editData.name}
           onChange={(e) => setEditData({ ...editData, name: e.target.value })}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg mb-2"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg mb-2 text-gray-900 bg-white"
           required
         />
         <textarea
           value={editData.description}
           onChange={(e) => setEditData({ ...editData, description: e.target.value })}
           rows={2}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg mb-3"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg mb-3 text-gray-900 bg-white"
         />
         <div className="flex space-x-2">
           <button

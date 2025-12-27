@@ -43,3 +43,47 @@ body {
   }
 }
 
+/* Assicura leggibilità dei testi nei form su mobile */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="date"],
+input[type="tel"],
+textarea,
+select {
+  color: rgb(17, 24, 39) !important; /* text-gray-900 */
+  background-color: rgb(255, 255, 255) !important;
+  -webkit-text-fill-color: rgb(17, 24, 39) !important; /* Forza colore su iOS Safari */
+}
+
+/* Forza il colore del testo anche quando l'input è in autofill su mobile (iOS Safari) */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active,
+input[type="password"]:-webkit-autofill,
+input[type="password"]:-webkit-autofill:hover,
+input[type="password"]:-webkit-autofill:focus,
+input[type="password"]:-webkit-autofill:active {
+  -webkit-text-fill-color: rgb(17, 24, 39) !important;
+  -webkit-box-shadow: 0 0 0px 1000px rgb(255, 255, 255) inset !important;
+  box-shadow: 0 0 0px 1000px rgb(255, 255, 255) inset !important;
+  color: rgb(17, 24, 39) !important;
+}
+
+/* Specifico per input password su iOS - forza visibilità caratteri */
+input[type="password"] {
+  -webkit-text-fill-color: rgb(17, 24, 39) !important;
+  color: rgb(17, 24, 39) !important;
+  font-size: 16px !important; /* Previene zoom su iOS quando si fa focus */
+}
+
+input[type="text"]::placeholder,
+input[type="email"]::placeholder,
+input[type="password"]::placeholder,
+textarea::placeholder {
+  color: rgb(156, 163, 175) !important; /* text-gray-400 */
+  opacity: 1;
+}
+

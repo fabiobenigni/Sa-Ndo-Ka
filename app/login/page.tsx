@@ -23,12 +23,16 @@ export default function LoginPage() {
         email,
         password,
         redirect: false,
+        callbackUrl: `${window.location.origin}/dashboard`,
       });
 
       if (result?.error) {
         setError('Email o password non corretti');
+      } else if (result?.ok) {
+        // Usa window.location invece di router.push per forzare il reload completo
+        window.location.href = '/dashboard';
       } else {
-        router.push('/dashboard');
+        setError('Si è verificato un errore durante il login. Riprova.');
       }
     } catch (err) {
       setError('Si è verificato un errore');
@@ -73,7 +77,7 @@ export default function LoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 bg-white"
             />
           </div>
 
@@ -88,7 +92,12 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                autoComplete="current-password"
+                className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 bg-white"
+                style={{
+                  WebkitTextFillColor: 'rgb(17, 24, 39)',
+                  color: 'rgb(17, 24, 39)',
+                }}
               />
               <button
                 type="button"

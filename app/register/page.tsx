@@ -147,8 +147,8 @@ export default function RegisterPage() {
                 }
               }}
               required
-              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent ${
-                errorField === 'name' ? 'border-red-300 bg-red-50' : 'border-gray-300'
+              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 ${
+                errorField === 'name' ? 'border-red-300 bg-red-50' : 'border-gray-300 bg-white'
               }`}
             />
           </div>
@@ -169,8 +169,8 @@ export default function RegisterPage() {
                 }
               }}
               required
-              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent ${
-                errorField === 'email' ? 'border-red-300 bg-red-50' : 'border-gray-300'
+              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 ${
+                errorField === 'email' ? 'border-red-300 bg-red-50' : 'border-gray-300 bg-white'
               }`}
             />
             {errorField === 'email' && (
@@ -195,8 +195,8 @@ export default function RegisterPage() {
               }}
               required
               minLength={6}
-              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent ${
-                errorField === 'password' ? 'border-red-300 bg-red-50' : 'border-gray-300'
+              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 ${
+                errorField === 'password' ? 'border-red-300 bg-red-50' : 'border-gray-300 bg-white'
               }`}
             />
             {errorField === 'password' && (
@@ -220,8 +220,8 @@ export default function RegisterPage() {
                 }
               }}
               required
-              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent ${
-                errorField === 'confirmPassword' ? 'border-red-300 bg-red-50' : 'border-gray-300'
+              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 ${
+                errorField === 'confirmPassword' ? 'border-red-300 bg-red-50' : 'border-gray-300 bg-white'
               }`}
             />
             {errorField === 'confirmPassword' && (

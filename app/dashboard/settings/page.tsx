@@ -220,7 +220,7 @@ export default function SettingsPage() {
                     value={newType.name}
                     onChange={(e) => setNewType({ ...newType, name: e.target.value })}
                     required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 text-gray-900 bg-white"
                   />
                 </div>
                 <div className="mb-3">
@@ -231,7 +231,7 @@ export default function SettingsPage() {
                     value={newType.description}
                     onChange={(e) => setNewType({ ...newType, description: e.target.value })}
                     rows={2}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 text-gray-900 bg-white"
                   />
                 </div>
                 <div className="flex space-x-2">
@@ -652,7 +652,7 @@ function AppConfigPanel() {
               onChange={(e) => setConfig({ ...config, baseUrl: e.target.value })}
               placeholder="http://localhost:3000"
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 bg-white"
             />
             <p className="mt-1 text-xs text-gray-500">
               Esempi: http://localhost:3000, https://sa-ndo-ka.example.com, http://192.168.1.100:3000
@@ -676,7 +676,7 @@ function AppConfigPanel() {
                 value={config.smtpHost}
                 onChange={(e) => setConfig({ ...config, smtpHost: e.target.value })}
                 placeholder="smtp.gmail.com"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 bg-white"
               />
             </div>
             <div>
@@ -688,7 +688,7 @@ function AppConfigPanel() {
                 value={config.smtpPort}
                 onChange={(e) => setConfig({ ...config, smtpPort: e.target.value })}
                 placeholder="587"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 bg-white"
               />
             </div>
             <div>
@@ -700,7 +700,7 @@ function AppConfigPanel() {
                 value={config.smtpUser}
                 onChange={(e) => setConfig({ ...config, smtpUser: e.target.value })}
                 placeholder="your-email@gmail.com"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 bg-white"
               />
             </div>
             <div>
@@ -713,7 +713,7 @@ function AppConfigPanel() {
                   value={config.smtpPass}
                   onChange={(e) => setConfig({ ...config, smtpPass: e.target.value })}
                   placeholder="••••••••"
-                  className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 bg-white"
                 />
                 <button
                   type="button"
@@ -905,7 +905,7 @@ function UserProfilePanel({ session }: { session: any }) {
             type="text"
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 bg-white"
             placeholder="Il tuo nome"
           />
         </div>
@@ -920,7 +920,7 @@ function UserProfilePanel({ session }: { session: any }) {
             value={formData.email}
             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
             required
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 bg-white"
           />
         </div>
 
@@ -932,7 +932,7 @@ function UserProfilePanel({ session }: { session: any }) {
             id="profile-language"
             value={formData.language}
             onChange={(e) => setFormData({ ...formData, language: e.target.value as 'it' | 'en' })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 bg-white"
           >
             <option value="it">Italiano</option>
             <option value="en">English</option>
@@ -977,7 +977,7 @@ function UserProfilePanel({ session }: { session: any }) {
                   value={passwordData.currentPassword}
                   onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
                   required
-                  className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 bg-white"
                 />
                 <button
                   type="button"
@@ -1001,7 +1001,7 @@ function UserProfilePanel({ session }: { session: any }) {
                   onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
                   required
                   minLength={8}
-                  className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 bg-white"
                 />
                 <button
                   type="button"
@@ -1025,7 +1025,7 @@ function UserProfilePanel({ session }: { session: any }) {
                   onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
                   required
                   minLength={8}
-                  className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 bg-white"
                 />
                 <button
                   type="button"
@@ -1079,14 +1079,14 @@ function TypeEditForm({ type, onSave, onCancel }: { type: any; onSave: (name: st
         type="text"
         value={name}
         onChange={(e) => setName(e.target.value)}
-        className="w-full px-3 py-2 border border-gray-300 rounded-lg mb-2"
+        className="w-full px-3 py-2 border border-gray-300 rounded-lg mb-2 text-gray-900 bg-white"
         required
       />
       <textarea
         value={description}
         onChange={(e) => setDescription(e.target.value)}
         rows={2}
-        className="w-full px-3 py-2 border border-gray-300 rounded-lg mb-2"
+        className="w-full px-3 py-2 border border-gray-300 rounded-lg mb-2 text-gray-900 bg-white"
       />
       <div className="flex space-x-2">
         <button
@@ -1118,13 +1118,13 @@ function PropertyEditForm({ property, typeId, onSave, onCancel }: { property: an
         type="text"
         value={name}
         onChange={(e) => setName(e.target.value)}
-        className="w-full px-3 py-2 border border-gray-300 rounded-lg mb-2"
+        className="w-full px-3 py-2 border border-gray-300 rounded-lg mb-2 text-gray-900 bg-white"
         required
       />
       <select
         value={type}
         onChange={(e) => setType(e.target.value)}
-        className="w-full px-3 py-2 border border-gray-300 rounded-lg mb-2"
+        className="w-full px-3 py-2 border border-gray-300 rounded-lg mb-2 text-gray-900 bg-white"
       >
         <option value="text">Testo</option>
         <option value="number">Numero</option>
@@ -1138,7 +1138,7 @@ function PropertyEditForm({ property, typeId, onSave, onCancel }: { property: an
           value={lookupValues}
           onChange={(e) => setLookupValues(e.target.value)}
           rows={3}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg mb-2"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg mb-2 text-gray-900 bg-white"
           placeholder="Uno per riga"
         />
       )}
@@ -1267,7 +1267,7 @@ function TypePropertiesEditor({ type, onUpdate }: { type: any; onUpdate: () => v
               value={newProperty.name}
               onChange={(e) => setNewProperty({ ...newProperty, name: e.target.value })}
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white"
             />
           </div>
           <div className="mb-3">
@@ -1275,7 +1275,7 @@ function TypePropertiesEditor({ type, onUpdate }: { type: any; onUpdate: () => v
             <select
               value={newProperty.type}
               onChange={(e) => setNewProperty({ ...newProperty, type: e.target.value as any })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white"
             >
               <option value="text">Testo</option>
               <option value="number">Numero</option>
@@ -1299,7 +1299,7 @@ function TypePropertiesEditor({ type, onUpdate }: { type: any; onUpdate: () => v
                   })
                 }
                 rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white"
                 placeholder="Es: Rosso&#10;Blu&#10;Verde"
               />
             </div>
@@ -1483,7 +1483,7 @@ function AIConfigPanel() {
                       handleUpdateConfig(provider.id, e.target.value, config?.enabled || false);
                     }
                   }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white"
                 />
               </div>
               <label className="flex items-center">

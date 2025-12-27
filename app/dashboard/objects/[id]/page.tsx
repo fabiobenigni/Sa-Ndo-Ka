@@ -427,7 +427,7 @@ function ObjectEditForm({ object, objectTypes, onSuccess, onCancel }: { object: 
           value={formData.name}
           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
           required
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 text-gray-900 bg-white"
         />
       </div>
 
@@ -437,7 +437,7 @@ function ObjectEditForm({ object, objectTypes, onSuccess, onCancel }: { object: 
           value={formData.objectTypeId}
           onChange={(e) => setFormData({ ...formData, objectTypeId: e.target.value })}
           required
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 text-gray-900 bg-white"
         >
           {objectTypes.map((type) => (
             <option key={type.id} value={type.id}>
@@ -452,8 +452,9 @@ function ObjectEditForm({ object, objectTypes, onSuccess, onCancel }: { object: 
         <input
           type="file"
           accept="image/*"
+          capture="environment"
           onChange={handlePhotoChange}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white"
         />
         {photoPreview && (
           <img src={photoPreview} alt="Preview" className="mt-2 max-w-xs rounded-lg" />
@@ -466,7 +467,7 @@ function ObjectEditForm({ object, objectTypes, onSuccess, onCancel }: { object: 
           value={formData.description}
           onChange={(e) => setFormData({ ...formData, description: e.target.value })}
           rows={3}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 text-gray-900 bg-white"
         />
       </div>
 
@@ -486,7 +487,7 @@ function ObjectEditForm({ object, objectTypes, onSuccess, onCancel }: { object: 
                     value={formData.properties[prop.id] || ''}
                     onChange={(e) => handlePropertyChange(prop.id, e.target.value)}
                     required={prop.required}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white"
                   />
                 )}
                 {prop.type === 'number' && (
@@ -495,7 +496,7 @@ function ObjectEditForm({ object, objectTypes, onSuccess, onCancel }: { object: 
                     value={formData.properties[prop.id] || ''}
                     onChange={(e) => handlePropertyChange(prop.id, e.target.value)}
                     required={prop.required}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white"
                   />
                 )}
                 {prop.type === 'select' && (
@@ -503,7 +504,7 @@ function ObjectEditForm({ object, objectTypes, onSuccess, onCancel }: { object: 
                     value={formData.properties[prop.id] || ''}
                     onChange={(e) => handlePropertyChange(prop.id, e.target.value)}
                     required={prop.required}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white"
                   >
                     <option value="">Seleziona...</option>
                     {prop.lookupValues?.map((lv: any) => (
@@ -530,7 +531,7 @@ function ObjectEditForm({ object, objectTypes, onSuccess, onCancel }: { object: 
                     value={formData.properties[prop.id] || ''}
                     onChange={(e) => handlePropertyChange(prop.id, e.target.value)}
                     required={prop.required}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white"
                   />
                 )}
                 {prop.type === 'year' && (
@@ -543,7 +544,7 @@ function ObjectEditForm({ object, objectTypes, onSuccess, onCancel }: { object: 
                     onChange={(e) => handlePropertyChange(prop.id, e.target.value)}
                     required={prop.required}
                     placeholder="Es: 2024"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white"
                   />
                 )}
               </div>

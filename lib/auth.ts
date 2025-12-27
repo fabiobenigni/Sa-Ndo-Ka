@@ -56,13 +56,16 @@ export const authOptions: NextAuthOptions = {
     signIn: '/login',
   },
   // Configurazione cookie per funzionare con IP e domini diversi
+  // Su mobile Safari, i cookie devono essere configurati correttamente per funzionare con IP
   useSecureCookies: isSecure,
   cookies: {
     sessionToken: {
       name: `next-auth.session-token`,
       options: {
         httpOnly: true,
-        sameSite: 'lax',
+        // Su HTTP, non impostare sameSite per permettere a NextAuth di gestirlo automaticamente
+        // Questo funziona meglio con IP su Safari mobile
+        ...(isSecure ? { sameSite: 'lax' as const } : {}),
         path: '/',
         secure: isSecure,
         // Non impostare domain per permettere cookie su qualsiasi host/IP
@@ -73,7 +76,7 @@ export const authOptions: NextAuthOptions = {
       name: `next-auth.callback-url`,
       options: {
         httpOnly: true,
-        sameSite: 'lax',
+        ...(isSecure ? { sameSite: 'lax' as const } : {}),
         path: '/',
         secure: isSecure,
       },
@@ -82,7 +85,7 @@ export const authOptions: NextAuthOptions = {
       name: `next-auth.csrf-token`,
       options: {
         httpOnly: true,
-        sameSite: 'lax',
+        ...(isSecure ? { sameSite: 'lax' as const } : {}),
         path: '/',
         secure: isSecure,
       },
