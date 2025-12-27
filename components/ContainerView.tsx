@@ -148,12 +148,69 @@ export default function ContainerView({ container }: ContainerViewProps) {
                 Annulla
               </button>
               {selectedObjectIds.size > 0 && (
-                <button
-                  onClick={() => setShowMoveModal(true)}
-                  className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium text-sm"
-                >
-                  📦 Sposta ({selectedObjectIds.size})
-                </button>
+                <>
+                  <button
+                    onClick={() => setShowMoveModal(true)}
+                    className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium text-sm"
+                  >
+                    📦 Sposta ({selectedObjectIds.size})
+                  </button>
+                  <button
+                    onClick={async () => {
+                      if (selectedObjectIds.size === 0) return;
+                      
+                      if (!confirm(`Vuoi analizzare ${selectedObjectIds.size} oggetto/i con AI?`)) {
+                        return;
+                      }
+
+                      try {
+                        const response = await fetch('/api/ai/analyze-batch', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({
+                            objectIds: Array.from(selectedObjectIds),
+                          }),
+                        });
+
+                        const data = await response.json();
+
+                        if (response.ok) {
+                          // Aggiorna gli oggetti con i risultati dell'analisi
+                          for (const result of data.results) {
+                            try {
+                              await fetch(`/api/objects/${result.objectId}`, {
+                                method: 'PUT',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                  description: result.analysis.description,
+                                  properties: result.analysis.properties || {},
+                                }),
+                              });
+                            } catch (error) {
+                              console.error(`Error updating object ${result.objectId}:`, error);
+                            }
+                          }
+
+                          let message = `Analisi completata!\n\nAnalizzati: ${data.analyzed}/${data.total}`;
+                          if (data.errors.length > 0) {
+                            message += `\nErrori: ${data.errors.length}`;
+                            message += '\n\nOggetti con errori:\n' + data.errors.map((e: any) => `- ${e.objectName}: ${e.error}`).join('\n');
+                          }
+                          alert(message);
+                          fetchObjects();
+                        } else {
+                          alert(data.error || 'Errore nell\'analisi batch');
+                        }
+                      } catch (error) {
+                        console.error('Error in batch analyze:', error);
+                        alert('Errore nell\'analisi batch');
+                      }
+                    }}
+                    className="px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium text-sm"
+                  >
+                    🔍 Analizza con AI ({selectedObjectIds.size})
+                  </button>
+                </>
               )}
             </>
           ) : (

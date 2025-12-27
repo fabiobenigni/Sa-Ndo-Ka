@@ -177,7 +177,70 @@ export default function ObjectDetailPage() {
             <span className="text-sm text-gray-600">Tipo:</span>{' '}
             <span className="font-medium text-primary-800">{object.objectType?.name}</span>
           </div>
-          <div className="flex space-x-3">
+          <div className="flex flex-wrap gap-3">
+            {object.photoUrl && (
+              <button
+                onClick={async () => {
+                  try {
+                    const photoUrl = object.photoUrl.startsWith('/api/uploads/')
+                      ? object.photoUrl
+                      : object.photoUrl.startsWith('/uploads/')
+                      ? `/api${object.photoUrl}`
+                      : `/api/uploads${object.photoUrl}`;
+                    
+                    const response = await fetch(photoUrl);
+                    const blob = await response.blob();
+                    const reader = new FileReader();
+                    reader.onloadend = async () => {
+                      const base64Image = reader.result as string;
+                      const providers = ['anthropic', 'openai', 'google'];
+                      let analysis = null;
+
+                      for (const provider of providers) {
+                        try {
+                          const analyzeResponse = await fetch('/api/ai/analyze', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                              photoUrl: base64Image,
+                              provider,
+                              objectTypeId: object.objectTypeId,
+                            }),
+                          });
+
+                          if (analyzeResponse.ok) {
+                            analysis = await analyzeResponse.json();
+                            // Aggiorna l'oggetto con i risultati
+                            const updateResponse = await fetch(`/api/objects/${object.id}`, {
+                              method: 'PUT',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({
+                                name: analysis.name || object.name,
+                                description: analysis.description || object.description,
+                                properties: analysis.properties || {},
+                              }),
+                            });
+                            if (updateResponse.ok) {
+                              alert('Analisi completata! I dati sono stati aggiornati.');
+                              window.location.reload();
+                            }
+                            break;
+                          }
+                        } catch (err) {
+                          console.error(`Errore con ${provider}:`, err);
+                        }
+                      }
+                    };
+                    reader.readAsDataURL(blob);
+                  } catch (error) {
+                    alert('Errore nell\'analisi della foto');
+                  }
+                }}
+                className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium"
+              >
+                🔍 Analizza con AI
+              </button>
+            )}
             <button
               onClick={handleDelete}
               className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium"
@@ -233,6 +296,7 @@ function ObjectEditForm({ object, objectTypes, onSuccess, onCancel }: { object: 
   });
   const [selectedType, setSelectedType] = useState<any>(object.objectType);
   const [saving, setSaving] = useState(false);
+  const [analyzing, setAnalyzing] = useState(false);
   const [error, setError] = useState('');
   const [photoPreview, setPhotoPreview] = useState<string | null>(
     object.photoUrl 
@@ -359,6 +423,123 @@ function ObjectEditForm({ object, objectTypes, onSuccess, onCancel }: { object: 
     }
   };
 
+  const handleAnalyzeAI = async () => {
+    const photoToAnalyze = formData.photo || (object.photoUrl ? null : null);
+    
+    if (!photoToAnalyze && !object.photoUrl) {
+      setError('Carica una foto per analizzare');
+      return;
+    }
+
+    if (!formData.objectTypeId) {
+      setError('Seleziona un tipo di oggetto per analizzare');
+      return;
+    }
+
+    setAnalyzing(true);
+    setError('');
+
+    try {
+      let base64Image: string;
+      
+      if (formData.photo) {
+        // Usa la nuova foto caricata
+        const reader = new FileReader();
+        reader.onloadend = async () => {
+          try {
+            base64Image = reader.result as string;
+            await performAnalysis(base64Image);
+          } catch (error) {
+            console.error('Error analyzing photo:', error);
+            setError('Errore nell\'analisi della foto');
+            setAnalyzing(false);
+          }
+        };
+        reader.onerror = () => {
+          setError('Errore nella lettura della foto');
+          setAnalyzing(false);
+        };
+        reader.readAsDataURL(formData.photo);
+      } else if (object.photoUrl) {
+        // Usa la foto esistente dell'oggetto
+        const photoUrl = object.photoUrl.startsWith('/api/uploads/')
+          ? object.photoUrl
+          : object.photoUrl.startsWith('/uploads/')
+          ? `/api${object.photoUrl}`
+          : `/api/uploads${object.photoUrl}`;
+        
+        // Converti URL in base64
+        const response = await fetch(photoUrl);
+        const blob = await response.blob();
+        const reader = new FileReader();
+        reader.onloadend = async () => {
+          try {
+            base64Image = reader.result as string;
+            await performAnalysis(base64Image);
+          } catch (error) {
+            console.error('Error analyzing photo:', error);
+            setError('Errore nell\'analisi della foto');
+            setAnalyzing(false);
+          }
+        };
+        reader.readAsDataURL(blob);
+      }
+    } catch (error) {
+      console.error('Error analyzing photo:', error);
+      setError('Errore nell\'analisi della foto');
+      setAnalyzing(false);
+    }
+
+    async function performAnalysis(base64Image: string) {
+      const providers = ['anthropic', 'openai', 'google'];
+      let analysis = null;
+
+      for (const provider of providers) {
+        try {
+          console.log(`Tentativo analisi con provider: ${provider}`);
+          const analyzeResponse = await fetch('/api/ai/analyze', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              photoUrl: base64Image,
+              provider,
+              objectTypeId: formData.objectTypeId,
+            }),
+          });
+
+          if (analyzeResponse.ok) {
+            analysis = await analyzeResponse.json();
+            console.log(`Analisi completata con successo usando ${provider}:`, analysis);
+            break;
+          } else {
+            const errorData = await analyzeResponse.json();
+            console.error(`Errore con ${provider}:`, errorData);
+            if (provider === providers[providers.length - 1]) {
+              setError(errorData.error || `Errore con ${provider}: ${errorData.details || 'Errore sconosciuto'}`);
+            }
+          }
+        } catch (err) {
+          console.error(`Errore con ${provider}:`, err);
+          if (provider === providers[providers.length - 1]) {
+            setError(`Errore di connessione con ${provider}. Verifica la configurazione nelle impostazioni.`);
+          }
+        }
+      }
+
+      if (analysis) {
+        setFormData({
+          ...formData,
+          name: analysis.name || formData.name,
+          description: analysis.description || formData.description,
+          properties: { ...formData.properties, ...analysis.properties },
+        });
+      } else {
+        setError('Nessun provider AI disponibile o configurato correttamente');
+      }
+      setAnalyzing(false);
+    }
+  };
+
   const handlePropertyChange = (propertyId: string, value: any) => {
     setFormData({
       ...formData,
@@ -449,13 +630,25 @@ function ObjectEditForm({ object, objectTypes, onSuccess, onCancel }: { object: 
 
       <div className="mb-4">
         <label className="block text-sm font-medium text-gray-700 mb-2">Foto</label>
-        <input
-          type="file"
-          accept="image/*"
-          capture="environment"
-          onChange={handlePhotoChange}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white"
-        />
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-4">
+          <input
+            type="file"
+            accept="image/*"
+            capture="environment"
+            onChange={handlePhotoChange}
+            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white min-w-0"
+          />
+          {(formData.photo || object.photoUrl) && (
+            <button
+              type="button"
+              onClick={handleAnalyzeAI}
+              disabled={analyzing || !formData.objectTypeId}
+              className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 text-sm font-medium whitespace-nowrap flex-shrink-0"
+            >
+              {analyzing ? 'Analizzando...' : '🔍 Analizza con AI'}
+            </button>
+          )}
+        </div>
         {photoPreview && (
           <img src={photoPreview} alt="Preview" className="mt-2 max-w-xs rounded-lg" />
         )}
