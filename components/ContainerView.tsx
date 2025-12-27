@@ -220,9 +220,12 @@ export default function ContainerView({ container }: ContainerViewProps) {
                               } else {
                                 const errorData = await updateResponse.json();
                                 console.error(`Errore aggiornamento ${result.objectId}:`, errorData);
+                                const errorMsg = errorData.details 
+                                  ? `${errorData.error}\n${errorData.details}` 
+                                  : errorData.error || 'Errore nell\'aggiornamento';
                                 updateErrors.push({ 
                                   objectName: result.objectName, 
-                                  error: errorData.error || 'Errore nell\'aggiornamento' 
+                                  error: errorMsg
                                 });
                               }
                             } catch (error) {
