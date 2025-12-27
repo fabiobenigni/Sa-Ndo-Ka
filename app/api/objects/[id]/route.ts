@@ -103,23 +103,34 @@ export async function PUT(
 
     const properties = propertiesJson ? JSON.parse(propertiesJson) : {};
 
+    // Prepara i dati per l'aggiornamento
+    const updateData: any = {
+      name,
+      description: description || null,
+      // Aggiorna proprietà: elimina vecchie e crea nuove
+      properties: {
+        deleteMany: {},
+        create: Object.entries(properties).map(([propertyId, value]) => ({
+          propertyId,
+          value: String(value),
+        })),
+      },
+    };
+
+    // Aggiungi objectTypeId solo se fornito
+    if (objectTypeId) {
+      updateData.objectTypeId = objectTypeId;
+    }
+
+    // Aggiungi photoUrl solo se c'è una nuova foto
+    if (photoUrl) {
+      updateData.photoUrl = photoUrl;
+    }
+
     // Aggiorna oggetto
     const updated = await prisma.object.update({
       where: { id: params.id },
-      data: {
-        name,
-        description: description || null,
-        objectTypeId: objectTypeId || undefined,
-        photoUrl: photoUrl || undefined,
-        // Aggiorna proprietà: elimina vecchie e crea nuove
-        properties: {
-          deleteMany: {},
-          create: Object.entries(properties).map(([propertyId, value]) => ({
-            propertyId,
-            value: String(value),
-          })),
-        },
-      },
+      data: updateData,
       include: {
         objectType: true,
         properties: {

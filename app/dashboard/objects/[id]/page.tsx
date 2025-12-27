@@ -240,7 +240,7 @@ export default function ObjectDetailPage() {
                           // Aggiorna l'oggetto con i risultati usando FormData
                           const formData = new FormData();
                           formData.append('name', analysis.name || object.name);
-                          formData.append('description', analysis.description || object.description || '');
+                          formData.append('description', analysis.description || '');
                           formData.append('objectTypeId', object.objectTypeId);
                           formData.append('properties', JSON.stringify(analysis.properties || {}));
 
@@ -250,14 +250,25 @@ export default function ObjectDetailPage() {
                           });
 
                           if (updateResponse.ok) {
-                            alert('Analisi completata! I dati sono stati aggiornati.');
-                            window.location.reload();
+                            setErrorModal({
+                              isOpen: true,
+                              title: 'Analisi Completata',
+                              message: 'Analisi completata con successo!\n\nI dati dell\'oggetto sono stati aggiornati:\n' +
+                                (analysis.description ? `- Descrizione: ${analysis.description.substring(0, 100)}...\n` : '') +
+                                (analysis.properties && Object.keys(analysis.properties).length > 0 
+                                  ? `- Proprietà aggiornate: ${Object.keys(analysis.properties).length}` 
+                                  : ''),
+                            });
+                            // Ricarica dopo la chiusura del modale
+                            setTimeout(() => {
+                              window.location.reload();
+                            }, 2000);
                           } else {
                             const errorData = await updateResponse.json();
                             setErrorModal({
                               isOpen: true,
                               title: 'Errore Aggiornamento',
-                              message: `Errore nell'aggiornamento dell'oggetto:\n\n${errorData.error || 'Errore sconosciuto'}`,
+                              message: `Errore nell'aggiornamento dell'oggetto:\n\n${errorData.error || 'Errore sconosciuto'}\n\nDettagli analisi:\n${JSON.stringify(analysis, null, 2)}`,
                             });
                           }
                         } else {

@@ -184,10 +184,16 @@ export default function ContainerView({ container }: ContainerViewProps) {
 
                         if (response.ok) {
                           // Aggiorna gli oggetti con i risultati dell'analisi
+                          const updateErrors: Array<{ objectName: string; error: string }> = [];
+                          const updateSuccess: string[] = [];
+
                           for (const result of data.results) {
                             try {
                               const obj = objects.find((item: any) => item.object.id === result.objectId);
-                              if (!obj) continue;
+                              if (!obj) {
+                                updateErrors.push({ objectName: result.objectName, error: 'Oggetto non trovato' });
+                                continue;
+                              }
 
                               const updateFormData = new FormData();
                               updateFormData.append('name', result.objectName);
@@ -195,19 +201,49 @@ export default function ContainerView({ container }: ContainerViewProps) {
                               updateFormData.append('objectTypeId', obj.object.objectTypeId);
                               updateFormData.append('properties', JSON.stringify(result.analysis.properties || {}));
 
-                              await fetch(`/api/objects/${result.objectId}`, {
+                              const updateResponse = await fetch(`/api/objects/${result.objectId}`, {
                                 method: 'PUT',
                                 body: updateFormData,
                               });
+
+                              if (updateResponse.ok) {
+                                updateSuccess.push(result.objectName);
+                              } else {
+                                const errorData = await updateResponse.json();
+                                updateErrors.push({ 
+                                  objectName: result.objectName, 
+                                  error: errorData.error || 'Errore nell\'aggiornamento' 
+                                });
+                              }
                             } catch (error) {
                               console.error(`Error updating object ${result.objectId}:`, error);
+                              updateErrors.push({ 
+                                objectName: result.objectName, 
+                                error: error instanceof Error ? error.message : 'Errore sconosciuto' 
+                              });
                             }
                           }
 
                           let message = `Analisi completata!\n\nAnalizzati: ${data.analyzed}/${data.total}`;
-                          if (data.errors.length > 0) {
-                            message += `\n\nErrori: ${data.errors.length}`;
-                            message += '\n\nOggetti con errori:\n' + data.errors.map((e: any) => `- ${e.objectName}: ${e.error}`).join('\n');
+                          
+                          if (updateSuccess.length > 0) {
+                            message += `\n\nAggiornati con successo: ${updateSuccess.length}`;
+                            if (updateSuccess.length <= 5) {
+                              message += '\n' + updateSuccess.map(name => `- ${name}`).join('\n');
+                            }
+                          }
+
+                          if (data.errors.length > 0 || updateErrors.length > 0) {
+                            const totalErrors = data.errors.length + updateErrors.length;
+                            message += `\n\nErrori totali: ${totalErrors}`;
+                            
+                            if (data.errors.length > 0) {
+                              message += '\n\nErrori durante l\'analisi:\n' + data.errors.map((e: any) => `- ${e.objectName}: ${e.error}`).join('\n');
+                            }
+                            
+                            if (updateErrors.length > 0) {
+                              message += '\n\nErrori durante l\'aggiornamento:\n' + updateErrors.map((e: any) => `- ${e.objectName}: ${e.error}`).join('\n');
+                            }
                             
                             // Mostra il modale con gli errori
                             setErrorModal({
@@ -216,9 +252,16 @@ export default function ContainerView({ container }: ContainerViewProps) {
                               message: message,
                             });
                           } else {
-                            alert('Analisi completata con successo!');
-                            fetchObjects();
+                            // Tutto ok, mostra messaggio di successo
+                            setErrorModal({
+                              isOpen: true,
+                              title: 'Analisi Completata',
+                              message: message,
+                            });
                           }
+                          
+                          // Ricarica gli oggetti in ogni caso
+                          fetchObjects();
                         } else {
                           setErrorModal({
                             isOpen: true,
