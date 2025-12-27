@@ -161,61 +161,68 @@ export default function ObjectForm({ objectTypes, containerId, onSuccess, onCanc
     setError('');
 
     try {
-      // Prima carica la foto
-      const uploadFormData = new FormData();
-      uploadFormData.append('photo', formData.photo);
-
-      const uploadResponse = await fetch('/api/upload', {
-        method: 'POST',
-        body: uploadFormData,
-      });
-
-      if (!uploadResponse.ok) {
-        throw new Error('Errore nel caricamento della foto');
-      }
-
-      const { photoUrl } = await uploadResponse.json();
-
-      // Poi analizza con AI (prova tutti i provider disponibili)
-      const providers = ['openai', 'anthropic', 'google'];
-      let analysis = null;
-
-      for (const provider of providers) {
+      // Converti l'immagine in base64 per l'analisi AI
+      const reader = new FileReader();
+      reader.onloadend = async () => {
         try {
-          const analyzeResponse = await fetch('/api/ai/analyze', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              photoUrl,
-              provider,
-              objectTypeId: formData.objectTypeId,
-            }),
-          });
+          const base64Image = reader.result as string;
 
-          if (analyzeResponse.ok) {
-            analysis = await analyzeResponse.json();
-            break;
+          // Poi analizza con AI (prova tutti i provider disponibili)
+          const providers = ['anthropic', 'openai', 'google']; // Anthropic per primo
+          let analysis = null;
+
+          for (const provider of providers) {
+            try {
+              const analyzeResponse = await fetch('/api/ai/analyze', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  photoUrl: base64Image, // Invia base64 invece di URL
+                  provider,
+                  objectTypeId: formData.objectTypeId,
+                }),
+              });
+
+              if (analyzeResponse.ok) {
+                analysis = await analyzeResponse.json();
+                break;
+              } else {
+                const errorData = await analyzeResponse.json();
+                console.error(`Error with ${provider}:`, errorData);
+              }
+            } catch (err) {
+              console.error(`Error with ${provider}:`, err);
+            }
           }
-        } catch (err) {
-          console.error(`Error with ${provider}:`, err);
-        }
-      }
 
-      if (analysis) {
-        // Aggiorna form con risultati AI
-        setFormData({
-          ...formData,
-          name: analysis.name || formData.name,
-          description: analysis.description || formData.description,
-          properties: { ...formData.properties, ...analysis.properties },
-        });
-      } else {
-        setError('Nessun provider AI disponibile o configurato');
-      }
+          if (analysis) {
+            // Aggiorna form con risultati AI
+            setFormData({
+              ...formData,
+              name: analysis.name || formData.name,
+              description: analysis.description || formData.description,
+              properties: { ...formData.properties, ...analysis.properties },
+            });
+          } else {
+            setError('Nessun provider AI disponibile o configurato correttamente');
+          }
+        } catch (error) {
+          console.error('Error analyzing photo:', error);
+          setError('Errore nell\'analisi della foto');
+        } finally {
+          setAnalyzing(false);
+        }
+      };
+
+      reader.onerror = () => {
+        setError('Errore nella lettura della foto');
+        setAnalyzing(false);
+      };
+
+      reader.readAsDataURL(formData.photo);
     } catch (error) {
       console.error('Error analyzing photo:', error);
       setError('Errore nell\'analisi della foto');
-    } finally {
       setAnalyzing(false);
     }
   };
