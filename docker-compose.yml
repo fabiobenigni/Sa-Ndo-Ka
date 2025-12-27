@@ -50,6 +50,8 @@ services:
       - ./nginx/ssl:/etc/nginx/ssl:ro
       # Volume per certificati Let's Encrypt (se usi certbot)
       - certbot-certs:/etc/letsencrypt:ro
+      # Volume per challenge Let's Encrypt
+      - ./certbot-challenges:/var/www/certbot:ro
     depends_on:
       - app
     networks:
