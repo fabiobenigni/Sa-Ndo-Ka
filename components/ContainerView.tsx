@@ -186,15 +186,18 @@ export default function ContainerView({ container }: ContainerViewProps) {
                           // Aggiorna gli oggetti con i risultati dell'analisi
                           for (const result of data.results) {
                             try {
-                              const formData = new FormData();
-                              formData.append('name', result.objectName);
-                              formData.append('description', result.analysis.description || '');
-                              formData.append('objectTypeId', objects.find((item: any) => item.object.id === result.objectId)?.object.objectTypeId || '');
-                              formData.append('properties', JSON.stringify(result.analysis.properties || {}));
+                              const obj = objects.find((item: any) => item.object.id === result.objectId);
+                              if (!obj) continue;
+
+                              const updateFormData = new FormData();
+                              updateFormData.append('name', result.objectName);
+                              updateFormData.append('description', result.analysis.description || '');
+                              updateFormData.append('objectTypeId', obj.object.objectTypeId);
+                              updateFormData.append('properties', JSON.stringify(result.analysis.properties || {}));
 
                               await fetch(`/api/objects/${result.objectId}`, {
                                 method: 'PUT',
-                                body: formData,
+                                body: updateFormData,
                               });
                             } catch (error) {
                               console.error(`Error updating object ${result.objectId}:`, error);
