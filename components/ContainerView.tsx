@@ -21,11 +21,24 @@ export default function ContainerView({ container }: ContainerViewProps) {
   const [selectedObjectIds, setSelectedObjectIds] = useState<Set<string>>(new Set());
   const [showMoveModal, setShowMoveModal] = useState(false);
   const [moving, setMoving] = useState(false);
+  const [viewMode, setViewMode] = useState<'tiles' | 'table'>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('containerViewMode');
+      return (saved === 'tiles' || saved === 'table') ? saved : 'tiles';
+    }
+    return 'tiles';
+  });
 
   useEffect(() => {
     fetchObjectTypes();
     fetchObjects();
   }, []);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('containerViewMode', viewMode);
+    }
+  }, [viewMode]);
 
   const fetchObjectTypes = async () => {
     try {
@@ -201,14 +214,42 @@ export default function ContainerView({ container }: ContainerViewProps) {
       <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-primary-200 p-4 md:p-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
           <h2 className="text-xl font-semibold text-primary-800">Oggetti nel contenitore</h2>
-          {selectionMode && objects.length > 0 && (
-            <button
-              onClick={toggleSelectAll}
-              className="text-sm text-primary-600 hover:text-primary-700 font-medium"
-            >
-              {selectedObjectIds.size === objects.length ? 'Deseleziona tutti' : 'Seleziona tutti'}
-            </button>
-          )}
+          <div className="flex items-center gap-3">
+            {selectionMode && objects.length > 0 && (
+              <button
+                onClick={toggleSelectAll}
+                className="text-sm text-primary-600 hover:text-primary-700 font-medium"
+              >
+                {selectedObjectIds.size === objects.length ? 'Deseleziona tutti' : 'Seleziona tutti'}
+              </button>
+            )}
+            {objects.length > 0 && !selectionMode && (
+              <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+                <button
+                  onClick={() => setViewMode('tiles')}
+                  className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                    viewMode === 'tiles'
+                      ? 'bg-white text-primary-700 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                  title="Visualizzazione tiles"
+                >
+                  ⬜ Tiles
+                </button>
+                <button
+                  onClick={() => setViewMode('table')}
+                  className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                    viewMode === 'table'
+                      ? 'bg-white text-primary-700 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                  title="Visualizzazione tabella"
+                >
+                  ☰ Tabella
+                </button>
+              </div>
+            )}
+          </div>
         </div>
         {loading ? (
           <p className="text-gray-600">Caricamento...</p>
@@ -224,7 +265,7 @@ export default function ContainerView({ container }: ContainerViewProps) {
               </button>
             )}
           </div>
-        ) : (
+        ) : viewMode === 'tiles' ? (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
             {objects.map((item: any) => {
               const isSelected = selectedObjectIds.has(item.object.id);
@@ -299,6 +340,137 @@ export default function ContainerView({ container }: ContainerViewProps) {
                 </Component>
               );
             })}
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-primary-50 border-b border-primary-200">
+                <tr>
+                  {selectionMode && (
+                    <th className="px-3 py-3 text-left text-xs font-semibold text-primary-700 uppercase">
+                      <input
+                        type="checkbox"
+                        checked={selectedObjectIds.size === objects.length && objects.length > 0}
+                        onChange={toggleSelectAll}
+                        className="w-4 h-4 text-primary-600 rounded focus:ring-primary-500"
+                      />
+                    </th>
+                  )}
+                  <th className="px-3 py-3 text-left text-xs font-semibold text-primary-700 uppercase">Immagine</th>
+                  <th className="px-3 py-3 text-left text-xs font-semibold text-primary-700 uppercase">Nome</th>
+                  <th className="px-3 py-3 text-left text-xs font-semibold text-primary-700 uppercase hidden md:table-cell">Tipo</th>
+                  <th className="px-3 py-3 text-left text-xs font-semibold text-primary-700 uppercase hidden lg:table-cell">Descrizione</th>
+                  <th className="px-3 py-3 text-left text-xs font-semibold text-primary-700 uppercase hidden lg:table-cell">Proprietà</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {objects.map((item: any) => {
+                  const isSelected = selectedObjectIds.has(item.object.id);
+                  const rowClassName = selectionMode
+                    ? `cursor-pointer transition-colors ${
+                        isSelected ? 'bg-primary-50' : 'hover:bg-gray-50'
+                      }`
+                    : 'hover:bg-gray-50 transition-colors';
+
+                  const handleRowClick = selectionMode
+                    ? () => toggleSelection(item.object.id)
+                    : (e: React.MouseEvent) => {
+                        // Naviga solo se non si è cliccato su un link o checkbox
+                        const target = e.target as HTMLElement;
+                        if (target.tagName !== 'A' && target.tagName !== 'INPUT') {
+                          router.push(`/dashboard/objects/${item.object.id}`);
+                        }
+                      };
+
+                  return (
+                    <tr
+                      key={item.id}
+                      onClick={handleRowClick}
+                      className={rowClassName}
+                    >
+                      {selectionMode && (
+                        <td className="px-3 py-3">
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => toggleSelection(item.object.id)}
+                            onClick={(e) => e.stopPropagation()}
+                            className="w-4 h-4 text-primary-600 rounded focus:ring-primary-500"
+                          />
+                        </td>
+                      )}
+                      <td className="px-3 py-3">
+                        {item.object.photoUrl ? (
+                          <img
+                            src={item.object.photoUrl.startsWith('/api/uploads/') 
+                              ? item.object.photoUrl 
+                              : item.object.photoUrl.startsWith('/uploads/')
+                              ? `/api${item.object.photoUrl}`
+                              : `/api/uploads${item.object.photoUrl}`
+                            }
+                            alt={item.object.name}
+                            className="w-12 h-12 md:w-16 md:h-16 object-cover rounded"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.style.display = 'none';
+                            }}
+                          />
+                        ) : (
+                          <div className="w-12 h-12 md:w-16 md:h-16 bg-gray-200 rounded flex items-center justify-center">
+                            <span className="text-gray-400 text-xs">📷</span>
+                          </div>
+                        )}
+                      </td>
+                      <td className="px-3 py-3">
+                        {selectionMode ? (
+                          <>
+                            <div className="font-semibold text-primary-800">{item.object.name}</div>
+                            <div className="text-xs text-gray-500 md:hidden mt-1">
+                              {item.object.objectType?.name}
+                            </div>
+                          </>
+                        ) : (
+                          <Link href={`/dashboard/objects/${item.object.id}`} className="block">
+                            <div className="font-semibold text-primary-800 hover:text-primary-600">{item.object.name}</div>
+                            <div className="text-xs text-gray-500 md:hidden mt-1">
+                              {item.object.objectType?.name}
+                            </div>
+                          </Link>
+                        )}
+                      </td>
+                      <td className="px-3 py-3 hidden md:table-cell">
+                        <span className="text-sm text-primary-700">{item.object.objectType?.name}</span>
+                      </td>
+                      <td className="px-3 py-3 hidden lg:table-cell">
+                        {item.object.description ? (
+                          <p className="text-sm text-gray-700 line-clamp-2">{item.object.description}</p>
+                        ) : (
+                          <span className="text-xs text-gray-400">-</span>
+                        )}
+                      </td>
+                      <td className="px-3 py-3 hidden lg:table-cell">
+                        {item.object.properties && item.object.properties.length > 0 ? (
+                          <div className="text-xs text-primary-600 space-y-1">
+                            {item.object.properties.slice(0, 2).map((prop: any) => (
+                              <div key={prop.id}>
+                                <span className="font-medium">{prop.property?.name}:</span> {prop.value}
+                              </div>
+                            ))}
+                            {item.object.properties.length > 2 && (
+                              <div className="text-gray-500">
+                                +{item.object.properties.length - 2} altre
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-xs text-gray-400">-</span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
         )}
       </div>

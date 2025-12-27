@@ -129,7 +129,7 @@ export default function CollectionPage() {
     <DashboardLayout
       title={collection.name}
       breadcrumbs={[
-        { label: 'Dashboard', href: '/dashboard' },
+        { label: 'Home Page', href: '/' },
         { label: collection.name }
       ]}
     >

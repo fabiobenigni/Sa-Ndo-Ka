@@ -153,7 +153,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <DashboardLayout breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Profilo Utente' }]}>
+    <DashboardLayout breadcrumbs={[{ label: 'Home Page', href: '/' }, { label: 'Profilo Utente' }]}>
       <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-primary-200 p-6">
         <h3 className="text-xl font-semibold text-primary-800 mb-4">Profilo Utente</h3>
 

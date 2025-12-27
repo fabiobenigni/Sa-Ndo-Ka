@@ -112,7 +112,7 @@ export default function ObjectDetailPage() {
   }
 
   const breadcrumbs = [
-    { label: 'Dashboard', href: '/dashboard' },
+    { label: 'Home Page', href: '/' },
     { label: 'Oggetto' },
   ];
 

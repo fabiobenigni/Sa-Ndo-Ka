@@ -166,7 +166,7 @@ export default function ShareCollectionPage() {
   }
 
   const breadcrumbs = [
-    { label: 'Dashboard', href: '/dashboard' },
+    { label: 'Home Page', href: '/' },
     { label: collection.name, href: `/dashboard/collections/${collectionId}` },
     { label: 'Condivisione' },
   ];

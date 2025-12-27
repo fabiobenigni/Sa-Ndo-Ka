@@ -92,7 +92,7 @@ export default function SearchPage() {
   };
 
   return (
-    <DashboardLayout breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Ricerca' }]}>
+    <DashboardLayout breadcrumbs={[{ label: 'Home Page', href: '/' }, { label: 'Ricerca' }]}>
       <div className="mb-4 md:mb-6">
         <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3 md:mb-4">
           Risultati di Ricerca

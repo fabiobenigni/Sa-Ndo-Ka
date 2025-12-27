@@ -125,7 +125,7 @@ export default function SettingsPage() {
     <DashboardLayout 
       title="Impostazioni"
       breadcrumbs={[
-        { label: 'Dashboard', href: '/dashboard' },
+        { label: 'Home Page', href: '/' },
         { label: 'Impostazioni' }
       ]}
     >
