@@ -37,7 +37,14 @@
     - ✅ Testato esecuzione con docker-compose
     - ✅ Verificato funzionamento HTTP (HTTPS configurabile con Certbot)
     - ✅ Testata persistenza dei dati tra riavvii del container
-  - Note: L'applicazione è completamente funzionante in Docker con supporto per IP, hostname e domini. HTTPS può essere configurato tramite Certbot seguendo le istruzioni in DOCKER.md.
+    - ✅ Testato build per architettura AMD64 (compatibile con NAS)
+    - ✅ Testato export immagine Docker in formato TAR per deployment NAS
+  - Script e tooling: ✅ **COMPLETATO**
+    - ✅ Script `build-docker.sh` per build e export immagine Docker AMD64
+    - ✅ Script `create-deployment-tar.sh` per creare archivio TAR sorgenti
+    - ✅ Configurazione Prisma binaryTargets per supportare AMD64 e ARM64
+    - ✅ Documentazione deployment in `deploy/README-DEPLOY.md` e `deploy/QUICK-START.md`
+  - Note: L'applicazione è completamente funzionante in Docker con supporto per IP, hostname e domini. L'immagine Docker è configurata per AMD64 (compatibile con la maggior parte dei NAS). HTTPS può essere configurato tramite Certbot seguendo le istruzioni in DOCKER.md. L'immagine può essere esportata in formato TAR e caricata direttamente sul NAS tramite `docker load`.
 
 ### Integrazione AI per Analisi Immagini e Generazione Dati
 - [x] Implementare sistema di analisi AI per generare descrizioni e completare caratteristiche degli oggetti ⚠️ **PARZIALMENTE IMPLEMENTATO**
