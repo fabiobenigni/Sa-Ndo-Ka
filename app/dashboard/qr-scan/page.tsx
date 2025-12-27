@@ -29,6 +29,42 @@ export default function QRScanPage() {
     };
   }, [html5QrCode]);
 
+  const scanFromFile = async (file: File) => {
+    try {
+      setError(null);
+      setScanning(true);
+
+      const qrCode = new Html5Qrcode('qr-reader');
+      
+      const result = await qrCode.scanFile(file, false);
+      
+      // QR code scansionato con successo
+      handleQRCodeScanned(result);
+      
+      // Cleanup
+      qrCode.clear();
+    } catch (err: any) {
+      console.error('Error scanning QR from file:', err);
+      if (err.message?.includes('No QR code')) {
+        setError('Nessun QR code trovato nell\'immagine. Prova con un\'altra foto.');
+      } else {
+        setError(`Errore nella scansione: ${err.message || 'Errore sconosciuto'}`);
+      }
+      setScanning(false);
+    }
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      await scanFromFile(file);
+    }
+    // Reset input per permettere di selezionare lo stesso file di nuovo
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   const startScanning = async () => {
     try {
       setError(null);
@@ -178,41 +214,102 @@ export default function QRScanPage() {
           )}
 
           <div className="space-y-4">
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <p className="text-sm text-blue-800 mb-2">
-                <strong>Nota importante:</strong>
-              </p>
-              <ul className="text-sm text-blue-700 space-y-1 list-disc list-inside">
-                <li>L&apos;accesso alla fotocamera richiede HTTPS (non funziona su HTTP)</li>
-                <li>Devi concedere i permessi quando richiesto dal browser</li>
-                <li>Se i permessi sono stati negati, vai nelle impostazioni del browser per abilitarli</li>
-              </ul>
+            {/* Toggle tra modalità file e camera */}
+            <div className="flex gap-2 justify-center">
+              <button
+                onClick={() => {
+                  setScanMode('file');
+                  if (html5QrCode) {
+                    stopScanning();
+                  }
+                }}
+                className={`px-4 py-2 rounded-lg font-medium ${
+                  scanMode === 'file'
+                    ? 'bg-primary-600 text-white'
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                📷 Scatta Foto
+              </button>
+              <button
+                onClick={() => {
+                  setScanMode('camera');
+                  if (html5QrCode) {
+                    stopScanning();
+                  }
+                }}
+                className={`px-4 py-2 rounded-lg font-medium ${
+                  scanMode === 'camera'
+                    ? 'bg-primary-600 text-white'
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                🎥 Video Live
+              </button>
             </div>
 
-            <p className="text-gray-700">
-              Posiziona il QR code del contenitore all&apos;interno del riquadro per scansionarlo.
-            </p>
-
-            <div id="qr-reader" className="w-full max-w-md mx-auto rounded-lg overflow-hidden border-2 border-primary-300 bg-black"></div>
-
-            {!scanning ? (
-              <div className="flex justify-center">
-                <button
-                  onClick={startScanning}
-                  className="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium"
-                >
-                  Avvia Scansione
-                </button>
-              </div>
+            {scanMode === 'file' ? (
+              <>
+                <p className="text-gray-700 text-center">
+                  Scatta una foto del QR code o seleziona un&apos;immagine dalla galleria.
+                </p>
+                <div className="flex flex-col items-center space-y-4">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    onChange={handleFileChange}
+                    className="hidden"
+                    id="qr-file-input"
+                  />
+                  <label
+                    htmlFor="qr-file-input"
+                    className="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium cursor-pointer text-center"
+                  >
+                    {scanning ? 'Scansione in corso...' : '📷 Scatta Foto o Seleziona Immagine'}
+                  </label>
+                  {scanning && (
+                    <div className="text-sm text-gray-600">
+                      Analisi dell&apos;immagine in corso...
+                    </div>
+                  )}
+                </div>
+              </>
             ) : (
-              <div className="flex justify-center">
-                <button
-                  onClick={stopScanning}
-                  className="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium"
-                >
-                  Ferma Scansione
-                </button>
-              </div>
+              <>
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <p className="text-sm text-blue-800 mb-2">
+                    <strong>Nota:</strong> La modalità video richiede HTTPS e permessi fotocamera.
+                  </p>
+                </div>
+
+                <p className="text-gray-700">
+                  Posiziona il QR code del contenitore all&apos;interno del riquadro per scansionarlo.
+                </p>
+
+                <div id="qr-reader" className="w-full max-w-md mx-auto rounded-lg overflow-hidden border-2 border-primary-300 bg-black"></div>
+
+                {!scanning ? (
+                  <div className="flex justify-center">
+                    <button
+                      onClick={startScanning}
+                      className="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium"
+                    >
+                      Avvia Scansione Video
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex justify-center">
+                    <button
+                      onClick={stopScanning}
+                      className="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium"
+                    >
+                      Ferma Scansione
+                    </button>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>
