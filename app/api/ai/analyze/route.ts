@@ -184,14 +184,66 @@ La descrizione deve essere chiara e dettagliata. Le proprietà devono corrispond
         }
       } else if (provider === 'google') {
         const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: 'gemini-pro-vision' });
+        
+        // Converti l'immagine in base64 se necessario
+        let imageData: { inlineData: { data: string; mimeType: string } } | string;
+        
+        if (photoUrl.startsWith('data:image')) {
+          // Già in base64
+          const [header, data] = photoUrl.split(',');
+          const mimeType = header.match(/data:image\/(\w+);base64/)?.[1] || 'jpeg';
+          imageData = {
+            inlineData: {
+              data: data,
+              mimeType: `image/${mimeType}`,
+            },
+          };
+        } else if (photoUrl.startsWith('http://') || photoUrl.startsWith('https://')) {
+          // URL pubblico - Gemini può accettare URL direttamente
+          imageData = photoUrl;
+        } else {
+          // URL relativo - converti in URL assoluto
+          const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
+          const absoluteUrl = photoUrl.startsWith('/') ? `${baseUrl}${photoUrl}` : `${baseUrl}/${photoUrl}`;
+          imageData = absoluteUrl;
+        }
+
+        const model = genAI.getGenerativeModel({ 
+          model: 'gemini-2.5-flash', // Modello più recente e performante
+        });
+        
+        const prompt = `Analizza questa foto e genera una descrizione dettagliata e le caratteristiche per un oggetto di tipo "${objectType.name}".
+
+Proprietà disponibili:
+${objectType.properties.map(p => `- ${p.name} (${p.type}${p.required ? ', obbligatorio' : ''})`).join('\n')}
+
+${objectType.properties.some(p => p.lookupValues && p.lookupValues.length > 0) ? '\nValori possibili per le proprietà:\n' + objectType.properties.filter(p => p.lookupValues && p.lookupValues.length > 0).map(p => `- ${p.name}: ${p.lookupValues.map((lv: any) => lv.label).join(', ')}`).join('\n') : ''}
+
+IMPORTANTE: Restituisci SOLO un JSON valido con questa struttura esatta:
+{
+  "description": "descrizione dettagliata dell'oggetto",
+  "properties": {
+    "${objectType.properties[0]?.id || 'propertyId'}": "valore della proprietà"
+  }
+}
+
+La descrizione deve essere chiara e dettagliata. Le proprietà devono corrispondere agli ID delle proprietà disponibili. Per le proprietà di tipo "select", usa uno dei valori possibili indicati sopra.`;
+
         const response = await model.generateContent([
-          `Analizza questa foto e genera una descrizione e le caratteristiche per un oggetto di tipo "${objectType.name}". Proprietà disponibili: ${objectType.properties.map(p => `${p.name} (${p.type})`).join(', ')}. Restituisci JSON con: description (stringa), properties (oggetto con chiavi = id proprietà, valori = valori delle proprietà).`,
-          { inlineData: { data: photoUrl, mimeType: 'image/jpeg' } },
+          prompt,
+          typeof imageData === 'string' 
+            ? { fileData: { fileUri: imageData, mimeType: 'image/jpeg' } }
+            : imageData,
         ]);
 
         const content = response.response.text();
-        analysis = JSON.parse(content || '{}');
+        // Estrai JSON dalla risposta (potrebbe contenere markdown o testo aggiuntivo)
+        const jsonMatch = content.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          analysis = JSON.parse(jsonMatch[0]);
+        } else {
+          throw new Error('Nessun JSON valido trovato nella risposta');
+        }
       }
 
       // Aggiorna contatore free tier se necessario
