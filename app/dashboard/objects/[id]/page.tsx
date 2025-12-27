@@ -181,6 +181,10 @@ export default function ObjectDetailPage() {
             {object.photoUrl && (
               <button
                 onClick={async () => {
+                  if (!confirm('Vuoi analizzare questo oggetto con AI? I dati verranno aggiornati automaticamente.')) {
+                    return;
+                  }
+
                   try {
                     const photoUrl = object.photoUrl.startsWith('/api/uploads/')
                       ? object.photoUrl
@@ -192,48 +196,64 @@ export default function ObjectDetailPage() {
                     const blob = await response.blob();
                     const reader = new FileReader();
                     reader.onloadend = async () => {
-                      const base64Image = reader.result as string;
-                      const providers = ['anthropic', 'openai', 'google'];
-                      let analysis = null;
+                      try {
+                        const base64Image = reader.result as string;
+                        const providers = ['anthropic', 'openai', 'google'];
+                        let analysis = null;
 
-                      for (const provider of providers) {
-                        try {
-                          const analyzeResponse = await fetch('/api/ai/analyze', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                              photoUrl: base64Image,
-                              provider,
-                              objectTypeId: object.objectTypeId,
-                            }),
-                          });
-
-                          if (analyzeResponse.ok) {
-                            analysis = await analyzeResponse.json();
-                            // Aggiorna l'oggetto con i risultati
-                            const updateResponse = await fetch(`/api/objects/${object.id}`, {
-                              method: 'PUT',
+                        for (const provider of providers) {
+                          try {
+                            const analyzeResponse = await fetch('/api/ai/analyze', {
+                              method: 'POST',
                               headers: { 'Content-Type': 'application/json' },
                               body: JSON.stringify({
-                                name: analysis.name || object.name,
-                                description: analysis.description || object.description,
-                                properties: analysis.properties || {},
+                                photoUrl: base64Image,
+                                provider,
+                                objectTypeId: object.objectTypeId,
                               }),
                             });
-                            if (updateResponse.ok) {
-                              alert('Analisi completata! I dati sono stati aggiornati.');
-                              window.location.reload();
+
+                            if (analyzeResponse.ok) {
+                              analysis = await analyzeResponse.json();
+                              break;
                             }
-                            break;
+                          } catch (err) {
+                            console.error(`Errore con ${provider}:`, err);
                           }
-                        } catch (err) {
-                          console.error(`Errore con ${provider}:`, err);
                         }
+
+                        if (analysis) {
+                          // Aggiorna l'oggetto con i risultati usando FormData
+                          const formData = new FormData();
+                          formData.append('name', analysis.name || object.name);
+                          formData.append('description', analysis.description || object.description || '');
+                          formData.append('objectTypeId', object.objectTypeId);
+                          formData.append('properties', JSON.stringify(analysis.properties || {}));
+
+                          const updateResponse = await fetch(`/api/objects/${object.id}`, {
+                            method: 'PUT',
+                            body: formData,
+                          });
+
+                          if (updateResponse.ok) {
+                            alert('Analisi completata! I dati sono stati aggiornati.');
+                            window.location.reload();
+                          } else {
+                            const errorData = await updateResponse.json();
+                            alert(`Errore nell'aggiornamento: ${errorData.error || 'Errore sconosciuto'}`);
+                          }
+                        } else {
+                          alert('Nessun provider AI disponibile o configurato correttamente');
+                        }
+                      } catch (error) {
+                        console.error('Error in analysis:', error);
+                        alert('Errore nell\'analisi della foto');
                       }
                     };
                     reader.readAsDataURL(blob);
                   } catch (error) {
-                    alert('Errore nell\'analisi della foto');
+                    console.error('Error loading photo:', error);
+                    alert('Errore nel caricamento della foto');
                   }
                 }}
                 className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium"
