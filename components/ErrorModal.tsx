@@ -10,6 +10,9 @@ interface ErrorModalProps {
 export default function ErrorModal({ isOpen, onClose, title, message }: ErrorModalProps) {
   if (!isOpen) return null;
 
+  // Debug logging
+  console.log('ErrorModal renderizzato:', { isOpen, title, message: message.substring(0, 100) });
+
   const handleCopy = () => {
     navigator.clipboard.writeText(message).then(() => {
       alert('Messaggio copiato negli appunti!');

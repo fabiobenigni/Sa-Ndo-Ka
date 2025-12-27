@@ -185,7 +185,7 @@ export default function ContainerView({ container }: ContainerViewProps) {
                         if (response.ok) {
                           // Aggiorna gli oggetti con i risultati dell'analisi
                           const updateErrors: Array<{ objectName: string; error: string }> = [];
-                          const updateSuccess: string[] = [];
+                          const updateSuccess: Array<{ name: string; description: string }> = [];
 
                           for (const result of data.results) {
                             try {
@@ -201,15 +201,25 @@ export default function ContainerView({ container }: ContainerViewProps) {
                               updateFormData.append('objectTypeId', obj.object.objectTypeId);
                               updateFormData.append('properties', JSON.stringify(result.analysis.properties || {}));
 
+                              console.log(`Aggiornamento oggetto ${result.objectId}:`, {
+                                name: result.objectName,
+                                description: result.analysis.description?.substring(0, 50) + '...',
+                                propertiesCount: Object.keys(result.analysis.properties || {}).length
+                              });
+
                               const updateResponse = await fetch(`/api/objects/${result.objectId}`, {
                                 method: 'PUT',
                                 body: updateFormData,
                               });
 
                               if (updateResponse.ok) {
-                                updateSuccess.push(result.objectName);
+                                updateSuccess.push({ 
+                                  name: result.objectName, 
+                                  description: result.analysis.description || '' 
+                                });
                               } else {
                                 const errorData = await updateResponse.json();
+                                console.error(`Errore aggiornamento ${result.objectId}:`, errorData);
                                 updateErrors.push({ 
                                   objectName: result.objectName, 
                                   error: errorData.error || 'Errore nell\'aggiornamento' 
@@ -229,7 +239,13 @@ export default function ContainerView({ container }: ContainerViewProps) {
                           if (updateSuccess.length > 0) {
                             message += `\n\nAggiornati con successo: ${updateSuccess.length}`;
                             if (updateSuccess.length <= 5) {
-                              message += '\n' + updateSuccess.map(name => `- ${name}`).join('\n');
+                              message += '\n\nOggetti aggiornati:';
+                              updateSuccess.forEach(item => {
+                                message += `\n- ${item.name}`;
+                                if (item.description) {
+                                  message += `\n  Descrizione: ${item.description.substring(0, 80)}${item.description.length > 80 ? '...' : ''}`;
+                                }
+                              });
                             }
                           }
 
@@ -244,21 +260,15 @@ export default function ContainerView({ container }: ContainerViewProps) {
                             if (updateErrors.length > 0) {
                               message += '\n\nErrori durante l\'aggiornamento:\n' + updateErrors.map((e: any) => `- ${e.objectName}: ${e.error}`).join('\n');
                             }
-                            
-                            // Mostra il modale con gli errori
-                            setErrorModal({
-                              isOpen: true,
-                              title: 'Risultati Analisi AI',
-                              message: message,
-                            });
-                          } else {
-                            // Tutto ok, mostra messaggio di successo
-                            setErrorModal({
-                              isOpen: true,
-                              title: 'Analisi Completata',
-                              message: message,
-                            });
                           }
+
+                          // Mostra sempre il modale con i risultati
+                          console.log('Apertura modale con messaggio:', message);
+                          setErrorModal({
+                            isOpen: true,
+                            title: data.errors.length > 0 || updateErrors.length > 0 ? 'Risultati Analisi AI' : 'Analisi Completata',
+                            message: message,
+                          });
                           
                           // Ricarica gli oggetti in ogni caso
                           fetchObjects();
