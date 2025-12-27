@@ -569,6 +569,16 @@ export default function ContainerView({ container }: ContainerViewProps) {
         selectedCount={selectedObjectIds.size}
         loading={moving}
       />
+
+      <ErrorModal
+        isOpen={errorModal.isOpen}
+        onClose={() => {
+          setErrorModal({ isOpen: false, title: '', message: '' });
+          fetchObjects(); // Ricarica gli oggetti dopo la chiusura del modale
+        }}
+        title={errorModal.title}
+        message={errorModal.message}
+      />
     </DashboardLayout>
   );
 }
