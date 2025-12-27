@@ -1200,7 +1200,6 @@ function AIConfigPanel() {
                   checked={enabledStates[provider.id] || false}
                   onChange={(e) => {
                     setEnabledStates({ ...enabledStates, [provider.id]: e.target.checked });
-                    handleSaveConfig(provider.id);
                   }}
                   className="mr-2"
                 />
