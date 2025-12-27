@@ -163,6 +163,18 @@ export default function DashboardLayout({ children, breadcrumbs, title }: Dashbo
                   Home Page
                 </Link>
                 <Link
+                  href="/dashboard/qr-scan"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`px-4 py-3 rounded-lg transition-colors flex items-center space-x-2 ${
+                    pathname?.startsWith('/dashboard/qr-scan')
+                      ? 'bg-primary-100 text-primary-700 font-medium'
+                      : 'text-primary-600 hover:bg-primary-50'
+                  }`}
+                >
+                  <span>📷</span>
+                  <span>Scansiona QR Code</span>
+                </Link>
+                <Link
                   href="/dashboard/settings"
                   onClick={() => setMobileMenuOpen(false)}
                   className={`px-4 py-3 rounded-lg transition-colors ${
