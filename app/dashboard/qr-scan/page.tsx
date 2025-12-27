@@ -76,9 +76,25 @@ export default function QRScanPage() {
   const handleQRCodeScanned = (decodedText: string) => {
     try {
       // Estrai l'ID del contenitore dall'URL
-      // Il formato è: ${baseUrl}/container/${containerId}
-      const url = new URL(decodedText);
-      const pathParts = url.pathname.split('/').filter(Boolean);
+      // Il formato può essere: ${baseUrl}/container/${containerId} o solo /container/${containerId}
+      let pathParts: string[] = [];
+      
+      try {
+        const url = new URL(decodedText);
+        pathParts = url.pathname.split('/').filter(Boolean);
+      } catch {
+        // Se non è un URL completo, prova come path relativo
+        if (decodedText.includes('/container/')) {
+          const match = decodedText.match(/\/container\/([^\/\?]+)/);
+          if (match && match[1]) {
+            const containerId = match[1];
+            stopScanning();
+            router.push(`/container/${containerId}`);
+            return;
+          }
+        }
+        throw new Error('URL non valido');
+      }
       
       if (pathParts.length >= 2 && pathParts[0] === 'container') {
         const containerId = pathParts[1];
