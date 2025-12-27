@@ -109,7 +109,8 @@
     - ✅ Submit con Invio per navigare alla SERP (Search Engine Result Page)
     - ✅ Popup autocomplete con immagini degli oggetti
     - ✅ Z-index corretto per popup sopra altri elementi
-  - Note: Il motore di ricerca è completamente funzionante. Cerca in tutti i campi richiesti e mostra risultati con contesto completo (collezione, contenitore, campo di match). La UI è ottimizzata per desktop e mobile.
+    - ⚠️ **DA MIGLIORARE**: Il popup dei suggerimenti durante la digitazione presenta uno spazio fastidioso tra la barra di ricerca e il dropdown. Nonostante i tentativi di sovrapposizione (`marginTop: -2px`, `rect.bottom - 2`), lo spazio persiste. Il problema potrebbe essere legato al bordo dell'input o a padding/margin non gestiti correttamente. Da risolvere per migliorare l'esperienza utente.
+  - Note: Il motore di ricerca è completamente funzionante. Cerca in tutti i campi richiesti e mostra risultati con contesto completo (collezione, contenitore, campo di match). La UI è ottimizzata per desktop e mobile. Rimane da risolvere il problema dello spazio tra la barra di ricerca e il popup dei suggerimenti.
 
 ### Spostamento Oggetti tra Contenitori
 - [x] Implementare funzionalità per spostare oggetti tra contenitori ✅ **IMPLEMENTATO**
