@@ -173,6 +173,7 @@ export default function ObjectForm({ objectTypes, containerId, onSuccess, onCanc
 
           for (const provider of providers) {
             try {
+              console.log(`Tentativo analisi con provider: ${provider}`);
               const analyzeResponse = await fetch('/api/ai/analyze', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -185,13 +186,22 @@ export default function ObjectForm({ objectTypes, containerId, onSuccess, onCanc
 
               if (analyzeResponse.ok) {
                 analysis = await analyzeResponse.json();
+                console.log(`Analisi completata con successo usando ${provider}:`, analysis);
                 break;
               } else {
                 const errorData = await analyzeResponse.json();
-                console.error(`Error with ${provider}:`, errorData);
+                console.error(`Errore con ${provider}:`, errorData);
+                // Mostra l'errore all'utente solo se è l'ultimo provider
+                if (provider === providers[providers.length - 1]) {
+                  setError(errorData.error || `Errore con ${provider}: ${errorData.details || 'Errore sconosciuto'}`);
+                }
               }
             } catch (err) {
-              console.error(`Error with ${provider}:`, err);
+              console.error(`Errore con ${provider}:`, err);
+              // Mostra l'errore all'utente solo se è l'ultimo provider
+              if (provider === providers[providers.length - 1]) {
+                setError(`Errore di connessione con ${provider}. Verifica la configurazione nelle impostazioni.`);
+              }
             }
           }
 

@@ -1108,9 +1108,14 @@ function AIConfigPanel() {
 
       if (response.ok) {
         await fetchConfigs();
+        alert(`Configurazione ${provider} salvata con successo!`);
+      } else {
+        const errorData = await response.json();
+        alert(`Errore nel salvataggio: ${errorData.error || 'Errore sconosciuto'}`);
       }
     } catch (error) {
       console.error('Error updating AI config:', error);
+      alert('Errore nel salvataggio della configurazione');
     }
   };
 
@@ -1134,10 +1139,11 @@ function AIConfigPanel() {
                 </label>
                 <input
                   type="password"
-                  defaultValue={config?.apiKey || ''}
+                  defaultValue={config?.apiKey ? '••••••••' : ''}
                   placeholder={provider.placeholder}
-                  onBlur={(e) => {
-                    if (e.target.value) {
+                  onChange={(e) => {
+                    // Salva quando l'utente inserisce/modifica la chiave
+                    if (e.target.value && e.target.value !== '••••••••') {
                       handleUpdateConfig(provider.id, e.target.value, config?.enabled || false);
                     }
                   }}

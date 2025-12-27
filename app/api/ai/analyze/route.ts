@@ -44,9 +44,26 @@ export async function POST(request: Request) {
       },
     });
 
-    if (!aiConfig || !aiConfig.enabled || !aiConfig.apiKey) {
+    if (!aiConfig) {
+      console.error(`AI config not found for provider: ${provider}, userId: ${session.user.id}`);
       return NextResponse.json(
-        { error: 'AI non configurata o non abilitata' },
+        { error: `AI non configurata per il provider ${provider}. Vai su Impostazioni → Configurazione AI per configurarla.` },
+        { status: 400 }
+      );
+    }
+
+    if (!aiConfig.enabled) {
+      console.error(`AI config disabled for provider: ${provider}`);
+      return NextResponse.json(
+        { error: `AI non abilitata per il provider ${provider}. Attiva il toggle "Abilita analisi AI" nelle impostazioni.` },
+        { status: 400 }
+      );
+    }
+
+    if (!aiConfig.apiKey) {
+      console.error(`AI config missing API key for provider: ${provider}`);
+      return NextResponse.json(
+        { error: `Chiave API mancante per il provider ${provider}. Inserisci la chiave API nelle impostazioni.` },
         { status: 400 }
       );
     }
