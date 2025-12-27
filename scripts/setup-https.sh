@@ -179,19 +179,34 @@ sleep 5
 
 # Ottieni i certificati con certbot
 echo "📜 Ottengo i certificati Let's Encrypt..."
-docker-compose run --rm certbot certonly \
+echo "   Questo potrebbe richiedere alcuni minuti..."
+
+# Prima esecuzione: ottieni i certificati
+docker-compose --profile ssl run --rm certbot certonly \
     --webroot \
     --webroot-path=/var/www/certbot \
     --email "$CERTBOT_EMAIL" \
     --agree-tos \
     --no-eff-email \
-    -d "$DOMAIN"
+    --force-renewal \
+    -d "$DOMAIN" || {
+    echo "⚠️  Errore nell'ottenere i certificati"
+    echo "   Verifica:"
+    echo "   1. Il dominio $DOMAIN punta all'IP di questo server"
+    echo "   2. Le porte 80 e 443 sono aperte"
+    echo "   3. Nginx è in esecuzione"
+    echo ""
+    echo "   Log: docker-compose logs certbot"
+    exit 1
+}
 
 # Verifica che i certificati siano stati creati
-if [ ! -d "certbot-certs/live/$DOMAIN" ]; then
-    echo "❌ Errore: Certificati non trovati"
+# I certificati sono nel volume Docker, verifichiamo tramite container
+if ! docker-compose exec -T nginx test -f "/etc/letsencrypt/live/$DOMAIN/fullchain.pem" 2>/dev/null; then
+    echo "⚠️  Certificati non trovati nel volume Docker"
     echo "   Verifica i log: docker-compose logs certbot"
-    exit 1
+    echo "   Potrebbe essere necessario attendere qualche secondo..."
+    sleep 5
 fi
 
 echo "✅ Certificati ottenuti con successo!"
