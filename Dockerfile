@@ -72,6 +72,7 @@ EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 # Force Prisma to use binary engine to avoid OpenSSL issues on Alpine
+# Per AMD64 usa linux-musl-openssl-3.0.x, per ARM64 usa linux-musl-arm64-openssl-3.0.x
 ENV PRISMA_CLI_BINARY_TARGETS=linux-musl-openssl-3.0.x
 
 WORKDIR /app
